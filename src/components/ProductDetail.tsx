@@ -1,0 +1,1 @@
+//Component that will be responsible for displaying more detailed info about a product
