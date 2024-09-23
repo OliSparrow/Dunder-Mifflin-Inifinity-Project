@@ -5,9 +5,15 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["jest", "node"]
   },
   "include": [
-    "src/**/*", "src/tests/**/*"],
-  "exclude": ["node_modules", "dist"]
+    "src/**/*",
+    "src/tests/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
