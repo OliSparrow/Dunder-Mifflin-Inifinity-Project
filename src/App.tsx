@@ -3,6 +3,7 @@ import ProductList from "./components/ProductList";
 import OrderHistory from "./components/OrderHistory";
 import TopPane from "./components/TopPane";
 import ProductDetail from "./components/ProductDetail.tsx";
+import ApplicationFooter from "./components/ApplicationFooter";
 
 const App: React.FC = () => {
     return (
@@ -18,9 +19,8 @@ const App: React.FC = () => {
                         <Route path="/product/:id" element={<ProductDetail/>}/>
                     </Routes>
                 </div>
-            </div>
-            <div className="bg-blue-500 p-4">
-                <h1 className="text-white">Testing TailwindCSS</h1>
+
+                <ApplicationFooter />
             </div>
         </Router>
     );
