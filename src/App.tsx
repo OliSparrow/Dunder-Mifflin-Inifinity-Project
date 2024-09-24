@@ -9,9 +9,9 @@ import TopPane from "./components/TopPane";
 const App: React.FC = () => {
     return (
         <Router>
-            <div className="min-h-screen w-full">
+            <div className="min-h-screen">
                 <TopPane />
-                <div className="pt-24 px-4 w-full max-w-7xl mx-auto"> {/* Center the content */}
+                <div className="pt-24 px-4 w-full max-w-7xl mx-auto">
                     <Routes>
                         <Route path="/" element={<ProductList />} />
                         <Route path="/cart" element={<OrderHistory />} />
