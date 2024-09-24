@@ -4,9 +4,11 @@ import { sortOptionAtom, filterOptionAtom } from '../atoms/productAtoms.ts';
 
 interface SortFilterPanelProps {
     onAddProductClick: () => void;
+    onDeleteModeToggle: () => void;
+    deleteMode: boolean;
 }
 
-const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ onAddProductClick }) => {
+const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ onAddProductClick, onDeleteModeToggle, deleteMode }) => {
     const [sortOption, setSortOption] = useAtom(sortOptionAtom);
     const [filterOption, setFilterOption] = useAtom(filterOptionAtom);
 
@@ -39,8 +41,14 @@ const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ onAddProductClick }) 
                 </select>
             </div>
 
-            <button className="btn btn-primary w-full" onClick={onAddProductClick}>
+            <div className="divider"></div>
+
+            <button className="btn btn-primary w-full mb-2" onClick={onAddProductClick}>
                 Add Product
+            </button>
+
+            <button className={`btn ${deleteMode ? 'btn-error' : 'btn-outline'} w-full`} onClick={onDeleteModeToggle}>
+                {deleteMode ? "Exit Delete Mode" : "Delete Products"}
             </button>
         </div>
     );
