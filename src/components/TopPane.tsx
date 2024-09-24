@@ -1,15 +1,31 @@
 import React from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
+import {Link} from "react-router-dom";
 
 const TopPane: React.FC = () => {
     return (
-        <div className="flow-root p-4 bg-gray-100">
-            <h1 className="float-left text-2xl font-bold">Dunder Mifflin</h1>
-            <button className="float-right btn btn-primary flex items-center">
-                <FaShoppingCart className="mr-2" />
-            </button>
+        <div className="navbar bg-base-200 shadow-lg p-4">
+            <div className="flex-1">
+                <Link to="/" className="text-xl font-bold">
+                    DUNDER MIFFLIN
+                </Link>
+            </div>
+
+            <div className="flex-none w-full max-w-xs">
+                <input
+                    type="text"
+                    placeholder="Search for items"
+                    className="input input-bordered w-full"
+                />
+            </div>
+            <div className="flex-none ml-4">
+                <Link to="/order-history" className="btn btn-primary">
+                    <FaShoppingCart className="mr-2"/>
+                </Link>
+            </div>
         </div>
     );
-}
+};
+
 
 export default TopPane;
