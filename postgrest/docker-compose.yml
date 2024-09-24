@@ -1,0 +1,25 @@
+version: '3'
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: dundermifflin
+      POSTGRES_USER: michaelscott
+      POSTGRES_PASSWORD: brilliant
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  postgrest:
+    image: postgrest/postgrest
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://michaelscott:brilliant@db:5432/dundermifflin
+      PGRST_DB_ANON_ROLE: web_anon
+      PGRST_DB_SCHEMA: public
+      PGRST_JWT_SECRET: "disable"
+      PGRST_OPENAPI_SERVER_PROXY_URI: "http://localhost:3000"
+    depends_on:
+      - db
