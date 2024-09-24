@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {useParams} from "react-router-dom";
 import {useAtom} from "jotai";
-import {productsAtom} from "../atoms/productAtoms.ts";
+import {productsAtom} from "../../atoms/productAtoms.ts";
 import {FiShoppingCart} from "react-icons/fi";
 
 //Component that will be responsible for displaying more detailed info about a product

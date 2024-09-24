@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import ProductList from "./components/ProductList";
-import OrderHistory from "./components/OrderHistory";
+import ProductList from "./components/customer/ProductList";
+import OrderHistory from "./components/customer/OrderHistory";
 import TopPane from "./components/TopPane";
-import ProductDetail from "./components/ProductDetail.tsx";
+import ProductDetail from "./components/customer/ProductDetail.tsx";
 import ApplicationFooter from "./components/ApplicationFooter";
 
 const App: React.FC = () => {

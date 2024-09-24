@@ -1,17 +1,17 @@
 import React from 'react';
 import { useAtom } from 'jotai';
-import { sortOptionAtom, filterOptionAtom } from '../atoms/productAtoms.ts';
+import { sortOptionAtom, filterOptionAtom } from "../../atoms/productAtoms.ts";
 
 interface SortFilterPanelProps {
-    onAddProductClick: () => void;
-    onDeleteModeToggle: () => void;
-    deleteMode: boolean;
+    setAdminMode: (value: boolean) => void;
 }
 
-const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ onAddProductClick, onDeleteModeToggle, deleteMode }) => {
+const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ setAdminMode }) => {
+    //----ATOMS----
     const [sortOption, setSortOption] = useAtom(sortOptionAtom);
     const [filterOption, setFilterOption] = useAtom(filterOptionAtom);
 
+    //----HANDLERS----
     const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setSortOption(e.target.value);
     };
@@ -20,6 +20,7 @@ const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ onAddProductClick, on
         setFilterOption(e.target.value);
     };
 
+    //----STYLING----
     return (
         <div className="w-1/5 p-4">
             <div className="mb-4">
@@ -43,12 +44,9 @@ const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ onAddProductClick, on
 
             <div className="divider"></div>
 
-            <button className="btn btn-primary w-full mb-2" onClick={onAddProductClick}>
-                Add Product
-            </button>
-
-            <button className={`btn ${deleteMode ? 'btn-error' : 'btn-outline'} w-full`} onClick={onDeleteModeToggle}>
-                {deleteMode ? "Exit Delete Mode" : "Delete Products"}
+            {/*Mode toggle button*/}
+            <button className="btn btn-accent w-full" onClick={() => setAdminMode(true)}>
+                Admin
             </button>
         </div>
     );
