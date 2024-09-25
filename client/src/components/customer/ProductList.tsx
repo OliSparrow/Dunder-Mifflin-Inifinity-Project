@@ -57,19 +57,31 @@ const ProductList: React.FC = () => {
     return (
         <div className="p-4 bg-base-100 min-h-screen flex">
             {adminMode ? (
-                <>
-                    <AdminSortFilterPanel setAdminMode={setAdminMode} />
-                    <AdminProductList />
-                </>
-            ) : (
-                <>
-                    <SortFilterPanel setAdminMode={setAdminMode} />
+                <div className="flex w-full">
+                    <div className="w-1/5">
+                        <AdminSortFilterPanel setAdminMode={setAdminMode}/>
+                    </div>
+
                     <div className="divider divider-horizontal"></div>
+
+                    <div className="flex-grow">
+                        <AdminProductList/>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex w-full">
+                    <div className="w-1/5">
+                        <SortFilterPanel setAdminMode={setAdminMode}/>
+                    </div>
+
+                    <div className="divider divider-horizontal"></div>
+
                     <div className="w-3/4 p-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             {paginatedProducts.map((product) => (
                                 <Link key={product.id} to={`/product/${product.id}`}>
-                                    <div className="card shadow-md bg-white text-base-content h-full hover:bg-primary hover:text-white transition-colors">
+                                    <div
+                                        className="card shadow-md bg-white text-base-content h-full hover:bg-primary hover:text-white transition-colors">
                                         <div className="card-body flex flex-col justify-between h-full">
                                             <div>
                                                 <h2 className="card-title text-xl font-bold">{product.name}</h2>
@@ -83,16 +95,18 @@ const ProductList: React.FC = () => {
                             ))}
                         </div>
                         <div className="flex justify-center items-center mt-6">
-                            <button className="btn btn-outline" disabled={currentPage === 1} onClick={handlePreviousPage}>
+                            <button className="btn btn-outline" disabled={currentPage === 1}
+                                    onClick={handlePreviousPage}>
                                 Previous
                             </button>
                             <span className="mx-4">Page {currentPage} of {totalPages}</span>
-                            <button className="btn btn-outline" disabled={currentPage === totalPages} onClick={handleNextPage}>
+                            <button className="btn btn-outline" disabled={currentPage === totalPages}
+                                    onClick={handleNextPage}>
                                 Next
                             </button>
                         </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );

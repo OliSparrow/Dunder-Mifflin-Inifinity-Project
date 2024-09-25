@@ -1,1 +1,0 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/atoms/orderatoms.ts","./src/atoms/productatoms.ts","./src/components/orderhistory.tsx","./src/components/productdetail.tsx","./src/components/productlist.tsx","./src/components/toppane.tsx","./src/tests/example.test.ts"],"version":"5.6.2"}

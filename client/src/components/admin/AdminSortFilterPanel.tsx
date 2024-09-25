@@ -22,7 +22,7 @@ const AdminSortFilterPanel: React.FC<AdminSortFilterPanelProps> = ({ setAdminMod
 
     //----STYLING----
     return (
-        <div className="w-1/5 p-4">
+        <div className="p-4">
             <div className="mb-4">
                 <label className="block mb-2 font-bold">Sort by Price</label>
                 <select onChange={handleSortChange} value={sortOption}
