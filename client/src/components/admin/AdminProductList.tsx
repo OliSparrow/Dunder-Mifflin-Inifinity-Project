@@ -2,10 +2,19 @@ import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import {filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom} from '../../atoms/productAtoms.ts';
 import { FaTrash, FaCheck, FaEdit } from 'react-icons/fa';
+import AddProductForm from "./CRUD/AddProductForm.tsx";
+import EditProductForm from './CRUD/EditProductForm';
+
+interface Product {
+    id: number;
+    name: string;
+    price: number;
+    storage: string;
+}
 
 const AdminProductList: React.FC = () => {
     //----ATOMS----
-    const [products] = useAtom(productsAtom);
+    const [products, setProducts] = useAtom(productsAtom);
     const [filterOption] = useAtom(filterOptionAtom);
     const [sortOption] = useAtom(sortOptionAtom);
     const [searchQuery] = useAtom(searchQueryAtom);
@@ -13,10 +22,13 @@ const AdminProductList: React.FC = () => {
     //----USE STATES----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
     const [deleteMode, setDeleteMode] = useState(false);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
 
     //----FILTER AND SORT-----
     const filteredProducts = products.filter((product) => {
-        // Filter by storage option
+        //Filter by storage option
         let matchesFilter = true;
         if (filterOption === 'In Stock') {
             matchesFilter = product.storage === 'In Stock';
@@ -26,13 +38,13 @@ const AdminProductList: React.FC = () => {
             matchesFilter = product.storage === 'Low Stock';
         }
 
-        // Filter by search query
+        //Filter by search query
         let matchesSearchQuery = true;
         if (searchQuery) {
             matchesSearchQuery = product.name.toLowerCase().includes(searchQuery.toLowerCase());
         }
 
-        // Return true if both conditions are met
+        //Return true if both conditions are met
         return matchesFilter && matchesSearchQuery;
     });
 
@@ -44,11 +56,11 @@ const AdminProductList: React.FC = () => {
 
     //----HANDLERS----
     const handleAddProductClick = () => {
-        alert("Add product not yet implemented");
+        setShowAddForm(true);
     };
 
-    const handleEditProductClick = () => {
-        alert("Edit Product not yet implemented");
+    const handleEditProductClick = (product: Product) => {
+        setEditingProduct(product);
     };
 
     const handleSelectProduct = (id: number) => {
@@ -61,16 +73,22 @@ const AdminProductList: React.FC = () => {
 
     const handleDeleteSelected = () => {
         if (selectedProducts.length > 0) {
-            alert("Delete selected products functionality is not yet implemented.");
+            const confirmed = window.confirm("Are you sure you want to delete the selected products?");
+            if (confirmed) {
+                setProducts(products.filter((product) => !selectedProducts.includes(product.id)));
+                setSelectedProducts([]);
+                setDeleteMode(false);
+            }
         } else {
             alert("No products selected.");
         }
-        setSelectedProducts([]);
-        setDeleteMode(false);
     };
 
     const handleDeleteProduct = (id: number) => {
-        alert(`Delete product with id ${id} functionality is not yet implemented.`);
+        const confirmed = window.confirm("Are you sure you want to delete this product?");
+        if (confirmed) {
+            setProducts(products.filter((product) => product.id !== id));
+        }
     };
 
     const toggleDeleteMode = () => {
@@ -96,13 +114,13 @@ const AdminProductList: React.FC = () => {
                 className={`btn mb-4 ${deleteMode ? 'btn-warning' : 'btn-error'}`}
                 onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}
             >
-                {deleteMode ? "Delete Selected" : "Delete Multiple"}
+                {deleteMode ? 'Delete Selected' : 'Delete Multiple'}
             </button>
 
             <table className="table bg-white shadow-md table-zebra w-full">
                 <thead>
                 <tr>
-                    <th>{deleteMode ? "Select" : "Delete"}</th>
+                    <th>{deleteMode ? 'Select' : 'Delete'}</th>
                     <th>Name</th>
                     <th>Price</th>
                     <th>Storage</th>
@@ -113,8 +131,14 @@ const AdminProductList: React.FC = () => {
                 {sortedProducts.map((product) => (
                     <tr
                         key={product.id}
-                        className={`${deleteMode && selectedProducts.includes(product.id) ? 'bg-red-200' : ''}`}
-                        onClick={() => deleteMode && handleSelectProduct(product.id)} // Click anywhere to select in delete mode
+                        className={`${
+                            deleteMode && selectedProducts.includes(product.id) ? 'bg-red-200' : ''
+                        }`}
+                        onClick={() => {
+                            if (deleteMode) {
+                                handleSelectProduct(product.id);
+                            }
+                        }}
                     >
                         <td>
                             {deleteMode ? (
@@ -141,7 +165,7 @@ const AdminProductList: React.FC = () => {
                                 className="cursor-pointer text-blue-600 size-4"
                                 onClick={(e) => {
                                     e.stopPropagation(); // Prevents triggering row click
-                                    handleEditProductClick();
+                                    handleEditProductClick(product);
                                 }}
                             />
                         </td>
@@ -149,6 +173,12 @@ const AdminProductList: React.FC = () => {
                 ))}
                 </tbody>
             </table>
+
+            {showAddForm && <AddProductForm onClose={() => setShowAddForm(false)} />}
+
+            {editingProduct && (
+                <EditProductForm product={editingProduct} onClose={() => setEditingProduct(null)} />
+            )}
         </div>
     );
 };
