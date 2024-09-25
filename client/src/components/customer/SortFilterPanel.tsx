@@ -24,8 +24,13 @@ const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ setAdminMode }) => {
     return (
         <div className="p-4">
             <div className="mb-4">
-                <label className="block mb-2 font-bold">Sort by Price</label>
-                <select onChange={handleSortChange} value={sortOption} className="select select-bordered bg-white w-full">
+                <label htmlFor="sort-select" className="block mb-2 font-bold">Sort by Price</label>
+                <select
+                    id="sort-select"
+                    onChange={handleSortChange}
+                    value={sortOption}
+                    className="select select-bordered bg-white w-full"
+                >
                     <option value="">Select...</option>
                     <option value="price-low-high">Lowest to Highest</option>
                     <option value="price-high-low">Highest to Lowest</option>
@@ -33,8 +38,13 @@ const SortFilterPanel: React.FC<SortFilterPanelProps> = ({ setAdminMode }) => {
             </div>
 
             <div className="mb-4">
-                <label className="block mb-2 font-bold">Filter by Storage</label>
-                <select onChange={handleFilterChange} value={filterOption} className="select select-bordered bg-white w-full">
+                <label htmlFor="filter-select" className="block mb-2 font-bold">Filter by Storage</label>
+                <select
+                    id="filter-select"
+                    onChange={handleFilterChange}
+                    value={filterOption}
+                    className="select select-bordered bg-white w-full"
+                >
                     <option value="">All</option>
                     <option value="In Stock">In Stock</option>
                     <option value="Out of Stock">Out of Stock</option>
