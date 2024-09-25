@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import { useAtom } from "jotai";
-import {currentPageAtom, filterOptionAtom, productsAtom, sortOptionAtom} from "../../atoms/productAtoms.ts";
+import {currentPageAtom, filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom} from "../../atoms/productAtoms.ts";
 import SortFilterPanel from './SortFilterPanel';
 import AdminProductList from '../admin/AdminProductList.tsx'
 import AdminSortFilterPanel from '../admin/AdminSortFilterPanel.tsx'
@@ -8,7 +8,6 @@ import {Link} from "react-router-dom";
 
 //Component displaying a list of the products + ability to filter and search
 //---SPECIFICALLY FOR CUSTOMERS---
-
 const pageSize = 12;
 
 const ProductList: React.FC = () => {
@@ -17,16 +16,30 @@ const ProductList: React.FC = () => {
     const [products] = useAtom(productsAtom);
     const [filterOption] = useAtom(filterOptionAtom);
     const [sortOption] = useAtom(sortOptionAtom);
+    const [searchQuery] = useAtom(searchQueryAtom);
 
     //----USE STATES----
     const [adminMode, setAdminMode] = useState(false);
 
     //----FILTER AND SORT-----
     const filteredProducts = products.filter((product) => {
-        if (filterOption === "In Stock") return product.storage === "In Stock";
-        if (filterOption === "Out of Stock") return product.storage === "Out of Stock";
-        if (filterOption === "Low Stock") return product.storage === "Low Stock";
-        return true; //No filter applied
+        let matchesFilter = true;
+        if (filterOption === 'In Stock') {
+            matchesFilter = product.storage === 'In Stock';
+        } else if (filterOption === 'Out of Stock') {
+            matchesFilter = product.storage === 'Out of Stock';
+        } else if (filterOption === 'Low Stock') {
+            matchesFilter = product.storage === 'Low Stock';
+        }
+
+        // Filter by search query
+        let matchesSearchQuery = true;
+        if (searchQuery) {
+            matchesSearchQuery = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+
+        // Return true if both conditions are met
+        return matchesFilter && matchesSearchQuery;
     });
 
     const sortedProducts = filteredProducts.sort((a, b) => {

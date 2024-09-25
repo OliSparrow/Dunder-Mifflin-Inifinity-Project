@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
-import {filterOptionAtom, productsAtom, sortOptionAtom} from '../../atoms/productAtoms.ts';
+import {filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom} from '../../atoms/productAtoms.ts';
 import { FaTrash, FaCheck, FaEdit } from 'react-icons/fa';
 
 const AdminProductList: React.FC = () => {
@@ -8,6 +8,7 @@ const AdminProductList: React.FC = () => {
     const [products] = useAtom(productsAtom);
     const [filterOption] = useAtom(filterOptionAtom);
     const [sortOption] = useAtom(sortOptionAtom);
+    const [searchQuery] = useAtom(searchQueryAtom);
 
     //----USE STATES----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -15,10 +16,24 @@ const AdminProductList: React.FC = () => {
 
     //----FILTER AND SORT-----
     const filteredProducts = products.filter((product) => {
-        if (filterOption === "In Stock") return product.storage === "In Stock";
-        if (filterOption === "Out of Stock") return product.storage === "Out of Stock";
-        if (filterOption === "Low Stock") return product.storage === "Low Stock";
-        return true; //No filter applied
+        // Filter by storage option
+        let matchesFilter = true;
+        if (filterOption === 'In Stock') {
+            matchesFilter = product.storage === 'In Stock';
+        } else if (filterOption === 'Out of Stock') {
+            matchesFilter = product.storage === 'Out of Stock';
+        } else if (filterOption === 'Low Stock') {
+            matchesFilter = product.storage === 'Low Stock';
+        }
+
+        // Filter by search query
+        let matchesSearchQuery = true;
+        if (searchQuery) {
+            matchesSearchQuery = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+        }
+
+        // Return true if both conditions are met
+        return matchesFilter && matchesSearchQuery;
     });
 
     const sortedProducts = filteredProducts.sort((a, b) => {

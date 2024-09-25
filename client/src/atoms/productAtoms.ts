@@ -38,3 +38,6 @@ export const productsAtom = atom([
     { id: 25, name: 'Desk Calendar Pad 12 Months', price: 10, storage: 'In Stock' }
     //Placeholder objects until actual DB logic has been applied
 ]);
+
+//Atom for managing search queries
+export const searchQueryAtom = atom('');
