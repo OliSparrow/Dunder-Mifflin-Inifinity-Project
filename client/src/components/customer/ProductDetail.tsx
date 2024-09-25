@@ -6,17 +6,14 @@ import {FiShoppingCart} from "react-icons/fi";
 
 //Component that will be responsible for displaying more detailed info about a product
 const ProductDetail: React.FC = () => {
-    const { id } = useParams<{ id: string }>();
+    //----ATOMS-----
     const [products] = useAtom(productsAtom);
 
-    //Manage quantity selected by user
-    const [quantity, setQuantity] = useState<number>(1);
-
-    //Find the PRoduct by its ID
-    const product = products.find((p) => p.id === Number(id));
-
-    //If product isn't found, display a message:
-    if (!product) {
+    //----FIND PRODUCT BY ID-----
+    const { id } = useParams<{ id: string }>();
+    const [quantity, setQuantity] = useState<number>(1);  //Manage quantity selected by user
+    const product = products.find((p) => p.id === Number(id)); //Actually finding the product
+    if (!product) {  //If product isn't found, display a message:
         return (
             <div className="p-4 bg-base-100 min-h-screen">
                 <h1 className="text-3xl font-bold mb-4">Product not found</h1>
@@ -36,7 +33,7 @@ const ProductDetail: React.FC = () => {
         alert(`Added ${quantity} of ${product.name} to the cart`);
     };
 
-
+    //----STYLING-----
     return (
         <div className="p-4 bg-base-100 min-h-screen">
             <div className="card shadow-lg bg-white text-base-content p-6">

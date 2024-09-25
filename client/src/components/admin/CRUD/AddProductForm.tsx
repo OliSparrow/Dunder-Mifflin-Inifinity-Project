@@ -1,4 +1,3 @@
-// components/admin/AddProductForm.tsx
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { productsAtom } from '../../../atoms/productAtoms.ts';

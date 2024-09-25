@@ -1,8 +1,8 @@
-// components/admin/EditProductForm.tsx
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { productsAtom } from '../../../atoms/productAtoms.ts';
 
+//----INTERFACE----
 interface Product {
     id: number;
     name: string;
@@ -10,6 +10,7 @@ interface Product {
     storage: string;
 }
 
+//----PROPERTIES----
 interface EditProductFormProps {
     product: Product;
     onClose: () => void;
