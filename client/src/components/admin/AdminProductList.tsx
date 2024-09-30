@@ -1,16 +1,10 @@
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
-import {filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom} from '../../atoms/productAtoms.ts';
+import { filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom, Product } from '../../atoms/productAtoms.ts';
 import { FaTrash, FaCheck, FaEdit } from 'react-icons/fa';
-import AddProductForm from "./CRUD/AddProductForm.tsx";
+import AddProductForm from './CRUD/AddProductForm.tsx';
 import EditProductForm from './CRUD/EditProductForm';
-
-interface Product {
-    id: number;
-    name: string;
-    price: number;
-    storage: string;
-}
+import axios from 'axios';
 
 const AdminProductList: React.FC = () => {
     //----ATOMS----
@@ -25,33 +19,38 @@ const AdminProductList: React.FC = () => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-
     //----FILTER AND SORT-----
     const filteredProducts = products.filter((product) => {
-        //Filter by storage option
         let matchesFilter = true;
+
+        // Filter by stock levels
         if (filterOption === 'In Stock') {
-            matchesFilter = product.storage === 'In Stock';
+            matchesFilter = product.stock > 0;
         } else if (filterOption === 'Out of Stock') {
-            matchesFilter = product.storage === 'Out of Stock';
+            matchesFilter = product.stock === 0;
         } else if (filterOption === 'Low Stock') {
-            matchesFilter = product.storage === 'Low Stock';
+            matchesFilter = product.stock > 0 && product.stock < 5;
         }
 
-        //Filter by search query
+        // Filter discontinued products
+        if (filterOption === 'Discontinued') {
+            matchesFilter = product.discontinued;
+        }
+
+        // Filter by search query
         let matchesSearchQuery = true;
         if (searchQuery) {
             matchesSearchQuery = product.name.toLowerCase().includes(searchQuery.toLowerCase());
         }
 
-        //Return true if both conditions are met
+        // Return true if both conditions are met
         return matchesFilter && matchesSearchQuery;
     });
 
     const sortedProducts = filteredProducts.sort((a, b) => {
-        if (sortOption === "price-low-high") return a.price - b.price;
-        if (sortOption === "price-high-low") return b.price - a.price;
-        return 0;  //No sorting applied
+        if (sortOption === 'price-low-high') return a.price - b.price;
+        if (sortOption === 'price-high-low') return b.price - a.price;
+        return 0; // No sorting applied
     });
 
     //----HANDLERS----
@@ -71,23 +70,35 @@ const AdminProductList: React.FC = () => {
         );
     };
 
-    const handleDeleteSelected = () => {
+    const handleDeleteSelected = async () => {
         if (selectedProducts.length > 0) {
-            const confirmed = window.confirm("Are you sure you want to delete the selected products?");
+            const confirmed = window.confirm('Are you sure you want to delete the selected products?');
             if (confirmed) {
-                setProducts(products.filter((product) => !selectedProducts.includes(product.id)));
-                setSelectedProducts([]);
-                setDeleteMode(false);
+                try {
+                    await Promise.all(
+                        selectedProducts.map((id) => axios.delete(`http://localhost:5000/api/paper/${id}`))
+                    );
+                    setProducts(products.filter((product) => !selectedProducts.includes(product.id)));
+                    setSelectedProducts([]);
+                    setDeleteMode(false);
+                } catch (error) {
+                    console.error('Error deleting products:', error);
+                }
             }
         } else {
-            alert("No products selected.");
+            alert('No products selected.');
         }
     };
 
-    const handleDeleteProduct = (id: number) => {
-        const confirmed = window.confirm("Are you sure you want to delete this product?");
+    const handleDeleteProduct = async (id: number) => {
+        const confirmed = window.confirm('Are you sure you want to delete this product?');
         if (confirmed) {
-            setProducts(products.filter((product) => product.id !== id));
+            try {
+                await axios.delete(`http://localhost:5000/api/paper/${id}`);
+                setProducts(products.filter((product) => product.id !== id));
+            } catch (error) {
+                console.error('Error deleting product:', error);
+            }
         }
     };
 
@@ -99,7 +110,6 @@ const AdminProductList: React.FC = () => {
         }
         setSelectedProducts([]);
     };
-
 
     //----STYLING----
     return (
@@ -124,6 +134,7 @@ const AdminProductList: React.FC = () => {
                     <th>Name</th>
                     <th>Price</th>
                     <th>Storage</th>
+                    <th>Discontinued</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -159,7 +170,8 @@ const AdminProductList: React.FC = () => {
                         </td>
                         <td>{product.name}</td>
                         <td>{product.price}$,-</td>
-                        <td>{product.storage}</td>
+                        <td>{product.stock}</td>
+                        <td>{product.discontinued ? 'Yes' : 'No'}</td>
                         <td>
                             <FaEdit
                                 className="cursor-pointer text-blue-600 size-4"

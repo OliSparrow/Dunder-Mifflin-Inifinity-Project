@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Server.Controllers
@@ -23,7 +22,6 @@ namespace Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Paper>>> GetPapers()
         {
-            // Include the properties that are associated with the paper
             return await _context.Papers
                 .Include(p => p.PaperProperties)
                 .ThenInclude(pp => pp.Property)
@@ -51,7 +49,6 @@ namespace Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Paper>> AddPaper(Paper paper)
         {
-            // Add the paper and related properties to the database
             _context.Papers.Add(paper);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetPaper), new { id = paper.Id }, paper);

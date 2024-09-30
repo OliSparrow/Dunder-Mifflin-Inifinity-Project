@@ -1,10 +1,18 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import { useAtom } from "jotai";
-import {currentPageAtom, filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom} from "../../atoms/productAtoms.ts";
+import {
+    currentPageAtom,
+    filterOptionAtom,
+    productsAtom,
+    sortOptionAtom,
+    searchQueryAtom,
+    Product
+} from "../../atoms/productAtoms.ts";
 import SortFilterPanel from './SortFilterPanel';
 import AdminProductList from '../admin/AdminProductList.tsx'
 import AdminSortFilterPanel from '../admin/AdminSortFilterPanel.tsx'
 import {Link} from "react-router-dom";
+import axios from 'axios';
 
 //Component displaying a list of the products + ability to filter and search
 //---SPECIFICALLY FOR CUSTOMERS---
@@ -13,7 +21,7 @@ const pageSize = 12;
 const ProductList: React.FC = () => {
     //----ATOMS----
     const [currentPage, setCurrentPage] = useAtom(currentPageAtom);
-    const [products] = useAtom(productsAtom);
+    const [products, setProducts] = useAtom<Product[]>(productsAtom);
     const [filterOption] = useAtom(filterOptionAtom);
     const [sortOption] = useAtom(sortOptionAtom);
     const [searchQuery] = useAtom(searchQueryAtom);
@@ -21,24 +29,43 @@ const ProductList: React.FC = () => {
     //----USE STATES----
     const [adminMode, setAdminMode] = useState(false);
 
+    // ----FETCHING FROM API ----
+    useEffect(() => {
+        //Fetch the products from the backend
+        axios.get<Product[]>('http://localhost:5000/api/paper')
+            .then((response) => {
+                setProducts(response.data);
+            })
+            .catch((error) => {
+                console.error("Error fetching products:", error);
+            });
+    }, [setProducts]);
+
     //----FILTER AND SORT-----
     const filteredProducts = products.filter((product) => {
         let matchesFilter = true;
+
+        //Filter by stock levels
         if (filterOption === 'In Stock') {
-            matchesFilter = product.storage === 'In Stock';
+            matchesFilter = product.stock > 0;
         } else if (filterOption === 'Out of Stock') {
-            matchesFilter = product.storage === 'Out of Stock';
+            matchesFilter = product.stock === 0;
         } else if (filterOption === 'Low Stock') {
-            matchesFilter = product.storage === 'Low Stock';
+            matchesFilter = product.stock > 0 && product.stock < 5;
         }
 
-        // Filter by search query
+        //Filter out discontinued products if needed
+        if (filterOption === 'Discontinued') {
+            matchesFilter = product.discontinued;
+        }
+
+        //Filter by search query
         let matchesSearchQuery = true;
         if (searchQuery) {
             matchesSearchQuery = product.name.toLowerCase().includes(searchQuery.toLowerCase());
         }
 
-        // Return true if both conditions are met
+        //Return true if both conditions are met
         return matchesFilter && matchesSearchQuery;
     });
 
@@ -72,19 +99,19 @@ const ProductList: React.FC = () => {
             {adminMode ? (
                 <div className="flex w-full">
                     <div className="w-1/5">
-                        <AdminSortFilterPanel setAdminMode={setAdminMode}/>
+                        <AdminSortFilterPanel setAdminMode={setAdminMode} />
                     </div>
 
                     <div className="divider divider-horizontal"></div>
 
                     <div className="flex-grow">
-                        <AdminProductList/>
+                        <AdminProductList />
                     </div>
                 </div>
             ) : (
                 <div className="flex w-full">
                     <div className="w-1/5">
-                        <SortFilterPanel setAdminMode={setAdminMode}/>
+                        <SortFilterPanel setAdminMode={setAdminMode} />
                     </div>
 
                     <div className="divider divider-horizontal"></div>
@@ -94,11 +121,15 @@ const ProductList: React.FC = () => {
                             {paginatedProducts.map((product) => (
                                 <Link key={product.id} to={`/product/${product.id}`}>
                                     <div
-                                        className="card shadow-md bg-white text-base-content h-full hover:bg-primary hover:text-white transition-colors">
+                                        className={`card shadow-md bg-white text-base-content h-full hover:bg-primary hover:text-white transition-colors ${
+                                            product.discontinued ? 'opacity-50' : ''
+                                        }`}
+                                    >
                                         <div className="card-body flex flex-col justify-between h-full">
                                             <div>
                                                 <h2 className="card-title text-xl font-bold">{product.name}</h2>
-                                                <p className="text-sm">{product.storage}</p>
+                                                <p className="text-sm">Stock: {product.stock}</p>
+                                                {product.discontinued && <p className="text-sm text-red-600">Discontinued</p>}
                                             </div>
                                             <div className="divider"></div>
                                             <div className="text-xl font-bold flex justify-end">{product.price}$,-</div>

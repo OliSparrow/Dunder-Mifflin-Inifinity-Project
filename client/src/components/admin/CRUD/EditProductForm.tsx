@@ -1,47 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import { productsAtom } from '../../../atoms/productAtoms.ts';
+import { productsAtom, Property, Product } from '../../../atoms/productAtoms.ts';
+import axios from "axios";
 
-//----INTERFACE----
-interface Product {
-    id: number;
-    name: string;
-    price: number;
-    storage: string;
-}
-
-//----PROPERTIES----
-interface EditProductFormProps {
-    product: Product;
-    onClose: () => void;
-}
-
-const EditProductForm: React.FC<EditProductFormProps> = ({ product, onClose }) => {
+const EditProductForm: React.FC<{ product: Product; onClose: () => void }> = ({ product, onClose }) => {
     //----ATOMS----
     const [products, setProducts] = useAtom(productsAtom);
 
     //----USE STATES----
     const [name, setName] = useState(product.name);
     const [price, setPrice] = useState(product.price.toString());
-    const [storage, setStorage] = useState(product.storage);
+    const [stock, setStock] = useState(product.stock);
+    const [discontinued, setDiscontinued] = useState(product.discontinued);
+    const [properties, setProperties] = useState<string[]>(product.properties?.map(String) ?? []);
+    const [allProperties, setAllProperties] = useState<Property[]>([]);
+
+    // Fetch available properties from the backend
+    useEffect(() => {
+        async function fetchProperties() {
+            try {
+                const response = await axios.get('http://localhost:5000/api/properties');
+                setAllProperties(response.data);
+            } catch (error) {
+                console.error('Error fetching properties:', error);
+            }
+        }
+        fetchProperties();
+    }, []);
 
     //----HANDLERS----
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const updatedProduct = {
-            ...product,
+            id: product.id,
             name,
             price: parseFloat(price),
-            storage,
+            stock: parseInt(stock.toString()),
+            discontinued,
+            properties: properties.map(Number),
         };
 
-        setProducts(products.map((p) => (p.id === product.id ? updatedProduct : p)));
-        onClose();
+        console.log("Updating product:", updatedProduct);
+
+        try {
+            const response = await axios.put(`http://localhost:5000/api/paper/${product.id}`, updatedProduct);
+            setProducts(products.map(p => (p.id === product.id ? response.data : p)));
+            onClose(); // Close modal after submission
+        } catch (error) {
+            console.error('Error updating product:', error);
+        }
     };
 
     const handleModalContentClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
+        e.stopPropagation(); // Makes sure that it only closes on background clicks
     };
 
     //----STYLING----
@@ -50,6 +62,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ product, onClose }) =
             <div className="modal-box" onClick={handleModalContentClick}>
                 <h3 className="font-bold text-lg">Edit Product</h3>
                 <form onSubmit={handleSubmit}>
+                    {/* Product Name */}
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Product Name</span>
@@ -62,6 +75,8 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ product, onClose }) =
                             required
                         />
                     </div>
+
+                    {/* Product Price */}
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Price</span>
@@ -75,26 +90,63 @@ const EditProductForm: React.FC<EditProductFormProps> = ({ product, onClose }) =
                             required
                         />
                     </div>
+
+                    {/* Stock Quantity */}
                     <div className="form-control">
                         <label className="label">
-                            <span className="label-text">Storage Status</span>
+                            <span className="label-text">Stock Quantity</span>
+                        </label>
+                        <input
+                            type="number"
+                            value={stock}
+                            onChange={(e) => setStock(parseInt(e.target.value))}
+                            className="input input-bordered"
+                            required
+                        />
+                    </div>
+
+                    {/* Discontinued Toggle */}
+                    <div className="form-control">
+                        <label className="label cursor-pointer">
+                            <span className="label-text">Discontinued</span>
+                            <input
+                                type="checkbox"
+                                className="toggle toggle-primary"
+                                checked={discontinued}
+                                onChange={(e) => setDiscontinued(e.target.checked)}
+                            />
+                        </label>
+                    </div>
+
+                    {/* Select Properties */}
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text">Select Properties</span>
                         </label>
                         <select
-                            value={storage}
-                            onChange={(e) => setStorage(e.target.value)}
+                            multiple
+                            value={properties}
+                            onChange={(e) => {
+                                const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
+                                setProperties(selectedOptions);
+                            }}
                             className="select select-bordered"
                         >
-                            <option>In Stock</option>
-                            <option>Out of Stock</option>
-                            <option>Low Stock</option>
+                            {allProperties.map((property: Property) => (
+                                <option key={property.id} value={property.id.toString()}>
+                                    {property.property_name}
+                                </option>
+                            ))}
                         </select>
                     </div>
+
+                    {/* Action Buttons */}
                     <div className="modal-action">
                         <button type="button" className="btn" onClick={onClose}>
                             Cancel
                         </button>
                         <button type="submit" className="btn btn-primary">
-                            Save Changes
+                            Update Product
                         </button>
                     </div>
                 </form>

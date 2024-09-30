@@ -10,9 +10,9 @@ namespace Server.Data
         public DbSet<Paper> Papers { get; set; }
         public DbSet<Property> Properties { get; set; }
         public DbSet<PaperProperty> PaperProperties { get; set; }
-        public DbSet<Customer> Customers { get; set; } 
+        public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderEntry> OrderEntries { get; set; } 
+        public DbSet<OrderEntry> OrderEntries { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

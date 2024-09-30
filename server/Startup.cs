@@ -16,24 +16,25 @@ namespace Server
             Configuration = configuration;
         }
 
-        //This method gets called by the runtime to add services to DI container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
 
-            //Add DbContext and configure Postgrest connection
-            services.AddDbContext<DbContext>(options =>
+            //Add DbContext and configure PostgreSQL connection
+            services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
-            //Add CORS policy if required
+            //Add CORS policy to allow requests from React app
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowAllOrigins",
-                    builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+                options.AddPolicy("AllowReactApp",
+                    builder => builder
+                        .WithOrigins("http://localhost:5173") 
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
             });
         }
 
-        //Configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -43,8 +44,8 @@ namespace Server
 
             app.UseRouting();
 
-            //Enable CORS if needed
-            app.UseCors("AllowAllOrigins");
+            //Enable CORS for React app
+            app.UseCors("AllowReactApp");
 
             app.UseEndpoints(endpoints =>
             {
