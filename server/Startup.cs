@@ -1,3 +1,4 @@
+// Startup.cs
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,19 +21,21 @@ namespace Server
         {
             services.AddControllers();
 
-            //Add DbContext and configure PostgreSQL connection
+            // Add DbContext and configure PostgreSQL connection
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
 
-            //Add CORS policy to allow requests from React app
+            // Add CORS policy to allow requests from React app
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactApp",
                     builder => builder
-                        .WithOrigins("http://localhost:5173") 
+                        .WithOrigins("http://localhost:5173")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
             });
+
+            // Do not call Database.EnsureCreated() or Database.Migrate() here
         }
 
         public void Configure(IApplicationBuilder app, IHostEnvironment env)
@@ -44,7 +47,7 @@ namespace Server
 
             app.UseRouting();
 
-            //Enable CORS for React app
+            // Enable CORS for React app
             app.UseCors("AllowReactApp");
 
             app.UseEndpoints(endpoints =>

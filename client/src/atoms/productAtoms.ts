@@ -6,7 +6,7 @@ export interface Product {
     price: number;
     stock: number;  
     discontinued: boolean; 
-    properties?: number[];
+   // properties?: number[]; //removed for now
 }
 
 export interface Property {

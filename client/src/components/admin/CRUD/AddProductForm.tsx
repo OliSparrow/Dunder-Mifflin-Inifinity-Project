@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import { useAtom } from 'jotai';
-import { productsAtom, Property } from '../../../atoms/productAtoms.ts';
+import { productsAtom } from '../../../atoms/productAtoms.ts';
 import axios from "axios";
 
 const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -12,22 +12,6 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [price, setPrice] = useState('');
     const [stock, setStock] = useState(0); 
     const [discontinued, setDiscontinued] = useState(false);
-    const [properties, setProperties] = useState<string[]>([]);
-    const [allProperties, setAllProperties] = useState<Property[]>([]);
-
-    //Fetch available properties from the backend
-    useEffect(() => {
-        async function fetchProperties() {
-            try {
-                const response = await axios.get('http://localhost:5000/api/properties');
-                setAllProperties(response.data);
-            } catch (error) {
-                console.error('Error fetching properties:', error);
-            }
-        }
-        fetchProperties();
-    }, []);
-
 
     //----HANDLERS----
     const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +22,6 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             price: parseFloat(price),
             stock: parseInt(stock.toString()),
             discontinued,
-            properties: properties.map(Number),
         };
 
         console.log("Submitting product:", newProduct);
@@ -117,28 +100,6 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                 onChange={(e) => setDiscontinued(e.target.checked)}
                             />
                         </label>
-                    </div>
-
-                    {/*Select Properties*/}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Select Properties</span>
-                        </label>
-                        <select
-                            multiple
-                            value={properties}
-                            onChange={(e) => {
-                                const selectedOptions = Array.from(e.target.selectedOptions, option => option.value);
-                                setProperties(selectedOptions);
-                            }}
-                            className="select select-bordered"
-                        >
-                            {allProperties.map((property: Property) => (  // Use Property type here
-                                <option key={property.id} value={property.id.toString()}>
-                                    {property.property_name}
-                                </option>
-                            ))}
-                        </select>
                     </div>
 
                     {/*Action Buttons*/}

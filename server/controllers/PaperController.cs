@@ -1,9 +1,11 @@
+// Controllers/PaperController.cs
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
 using Server.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace Server.Controllers
 {
@@ -49,6 +51,11 @@ namespace Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Paper>> AddPaper(Paper paper)
         {
+            foreach (var pp in paper.PaperProperties)
+            {
+                _context.Entry(pp.Property).State = EntityState.Unchanged;
+            }
+
             _context.Papers.Add(paper);
             await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetPaper), new { id = paper.Id }, paper);

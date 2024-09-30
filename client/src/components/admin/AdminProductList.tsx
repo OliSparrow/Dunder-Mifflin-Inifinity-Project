@@ -1,3 +1,4 @@
+// AdminProductList.tsx
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom, Product } from '../../atoms/productAtoms.ts';
@@ -7,19 +8,19 @@ import EditProductForm from './CRUD/EditProductForm';
 import axios from 'axios';
 
 const AdminProductList: React.FC = () => {
-    //----ATOMS----
+    // ---- ATOMS ----
     const [products, setProducts] = useAtom(productsAtom);
     const [filterOption] = useAtom(filterOptionAtom);
     const [sortOption] = useAtom(sortOptionAtom);
     const [searchQuery] = useAtom(searchQueryAtom);
 
-    //----USE STATES----
+    // ---- USE STATES ----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
     const [deleteMode, setDeleteMode] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-    //----FILTER AND SORT-----
+    // ---- FILTER AND SORT ----
     const filteredProducts = products.filter((product) => {
         let matchesFilter = true;
 
@@ -53,7 +54,7 @@ const AdminProductList: React.FC = () => {
         return 0; // No sorting applied
     });
 
-    //----HANDLERS----
+    // ---- HANDLERS ----
     const handleAddProductClick = () => {
         setShowAddForm(true);
     };
@@ -111,7 +112,7 @@ const AdminProductList: React.FC = () => {
         setSelectedProducts([]);
     };
 
-    //----STYLING----
+    // ---- STYLING ----
     return (
         <div className="w-full p-4 bg-base-100">
             <h1 className="text-2xl font-bold mb-4">Manage Products</h1>

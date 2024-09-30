@@ -9,22 +9,66 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the code
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
+      # Step 2: Setup Node.js for client
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '20'
 
-      - name: Install dependencies
+      # Step 3: Cache Node.js dependencies
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ./client/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/client/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Step 4: Install Client Dependencies
+      - name: Install Client Dependencies
         run: npm install
         working-directory: ./client
 
-      - name: Run tests
+      # Step 5: Run Client Tests
+      - name: Run Client Tests
         run: npm test
         working-directory: ./client
+
+      # Step 6: Setup .NET Core SDK
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x' # Ensure this matches your project's .NET version
+
+      # Step 7: Cache .NET dependencies
+      - name: Cache .NET dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      # Step 8: Restore .NET Dependencies
+      - name: Restore .NET Dependencies
+        run: dotnet restore
+        working-directory: ./server
+
+      # Step 9: Build .NET Project
+      - name: Build .NET Project
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./server
+
+      # Step 10: Run .NET Tests
+      - name: Run .NET Tests
+        run: dotnet test --no-build --verbosity normal
+        working-directory: ./tests

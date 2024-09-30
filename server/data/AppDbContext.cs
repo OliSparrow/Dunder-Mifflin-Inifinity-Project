@@ -1,3 +1,4 @@
+// Data/AppDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using Server.Models;
 
@@ -16,6 +17,15 @@ namespace Server.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Paper>().ToTable("paper");
+            modelBuilder.Entity<Property>().ToTable("properties");
+            modelBuilder.Entity<PaperProperty>().ToTable("paper_properties");
+            modelBuilder.Entity<Customer>().ToTable("customers");
+            modelBuilder.Entity<Order>().ToTable("orders");
+            modelBuilder.Entity<OrderEntry>().ToTable("order_entries");
+
             modelBuilder.Entity<PaperProperty>()
                 .HasKey(pp => new { pp.PaperId, pp.PropertyId });
 
@@ -28,6 +38,21 @@ namespace Server.Data
                 .HasOne(pp => pp.Property)
                 .WithMany(p => p.PaperProperties)
                 .HasForeignKey(pp => pp.PropertyId);
+
+            modelBuilder.Entity<OrderEntry>()
+                .HasOne(oe => oe.Order)
+                .WithMany(o => o.OrderEntries)
+                .HasForeignKey(oe => oe.OrderId);
+
+            modelBuilder.Entity<OrderEntry>()
+                .HasOne(oe => oe.Product)
+                .WithMany()
+                .HasForeignKey(oe => oe.ProductId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.Customer)
+                .WithMany(c => c.Orders)
+                .HasForeignKey(o => o.CustomerId);
         }
     }
 }
