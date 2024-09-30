@@ -8,8 +8,9 @@ namespace Server.Models
         [Key]
         public int Id { get; set; }
 
-        public string PropertyName { get; set; }
+        [Required]
+        public required string PropertyName { get; set; }
 
-        public List<PaperProperty> PaperProperties { get; set; }
+        public required List<PaperProperty> PaperProperties { get; set; }
     }
 }

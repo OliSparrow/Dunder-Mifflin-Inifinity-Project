@@ -9,12 +9,14 @@ namespace Server.Models
         public int Id { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
-        public string Address { get; set; }
-        public string Phone { get; set; }
-        public string Email { get; set; }
+        public required string Address { get; set; }
+        
+        public required string Phone { get; set; }
+        
+        public required string Email { get; set; }
 
-        public List<Order> Orders { get; set; }
+        public required List<Order> Orders { get; set; }
     }
 }

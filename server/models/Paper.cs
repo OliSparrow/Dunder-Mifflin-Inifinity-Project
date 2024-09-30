@@ -9,7 +9,7 @@ namespace Server.Models
         public int Id { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         public bool Discontinued { get; set; }
 
@@ -17,6 +17,6 @@ namespace Server.Models
 
         public double Price { get; set; }
 
-        public List<PaperProperty> PaperProperties { get; set; }
+        public required List<PaperProperty> PaperProperties { get; set; }
     }
 }
