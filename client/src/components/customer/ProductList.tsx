@@ -13,6 +13,7 @@ import AdminProductList from '../admin/AdminProductList.tsx'
 import AdminSortFilterPanel from '../admin/AdminSortFilterPanel.tsx'
 import {Link} from "react-router-dom";
 import axios from 'axios';
+import { FaCheckCircle, FaExclamationCircle, FaTimesCircle } from "react-icons/fa";
 
 //Component displaying a list of the products + ability to filter and search
 //---SPECIFICALLY FOR CUSTOMERS---
@@ -75,6 +76,20 @@ const ProductList: React.FC = () => {
         return 0;  //No sorting applied
     });
 
+    //----STOCK ICON LOGIC----
+    const getStockIcon = (stock: number) => {
+        if (stock > 5) {
+            // In Stock - Green Checkmark
+            return <FaCheckCircle className="text-green-500" title="In Stock" />;
+        } else if (stock > 0 && stock <= 5) {
+            // Low Stock - Yellow Exclamation
+            return <FaExclamationCircle className="text-yellow-500" title="Low Stock" />;
+        } else {
+            // Out of Stock - Red X
+            return <FaTimesCircle className="text-red-500" title="Out of Stock" />;
+        }
+    };
+    
     //----PAGINATION-----
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = startIndex + pageSize;
@@ -128,11 +143,17 @@ const ProductList: React.FC = () => {
                                         <div className="card-body flex flex-col justify-between h-full">
                                             <div>
                                                 <h2 className="card-title text-xl font-bold">{product.name}</h2>
-                                                <p className="text-sm">Stock: {product.stock}</p>
-                                                {product.discontinued && <p className="text-sm text-red-600">Discontinued</p>}
+                                                {product.discontinued &&
+                                                    <p className="text-sm text-red-600">Discontinued</p>}
                                             </div>
                                             <div className="divider"></div>
-                                            <div className="text-xl font-bold flex justify-end">{product.price}$,-</div>
+                                            <div className="flex justify-between items-center">
+                                                <div className="flex items-center text-sm">
+                                                    <span className="mr-2">Stock:</span>
+                                                    {getStockIcon(product.stock)}
+                                                </div>
+                                                <div className="text-xl font-bold">{product.price}$,-</div>
+                                            </div>
                                         </div>
                                     </div>
                                 </Link>
