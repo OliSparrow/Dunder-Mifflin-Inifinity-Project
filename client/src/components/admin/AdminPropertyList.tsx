@@ -55,7 +55,7 @@ const AdminPropertyList: React.FC = () => {
                 Add Property
             </button>
 
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto shadow-md">
                 <table className="table table-zebra w-full">
                     <thead>
                     <tr>

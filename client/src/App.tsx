@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import ProductList from "./components/customer/ProductList";
 import OrderHistory from "./components/customer/OrderHistory";
 import TopPane from "./components/TopPane";
-import ProductDetail from "./components/customer/ProductDetail.tsx";
 import ApplicationFooter from "./components/ApplicationFooter";
+import AdminDashboard from "./components/admin/AdminDashboard.tsx";
+import CustomerView from "./components/customer/CustomerView.tsx";
 
 const App: React.FC = () => {
     return (
@@ -14,9 +14,10 @@ const App: React.FC = () => {
 
                 <div className="p-4">
                     <Routes>
-                        <Route path="/" element={<ProductList/>}/>
+                        <Route path="/*" element={<CustomerView/>}/>
+                        <Route path="/admin/*" element={<AdminDashboard />} />
                         <Route path="/order-history" element={<OrderHistory/>}/>
-                        <Route path="/product/:id" element={<ProductDetail/>}/>
+
                     </Routes>
                 </div>
 

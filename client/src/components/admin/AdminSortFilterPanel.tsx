@@ -2,11 +2,7 @@ import React from 'react';
 import { useAtom } from 'jotai';
 import { filterOptionAtom, sortOptionAtom } from '../../atoms/productAtoms';
 
-interface AdminSortFilterPanelProps {
-    setAdminMode: (value: boolean) => void;
-}
-
-const AdminSortFilterPanel: React.FC<AdminSortFilterPanelProps> = ({ setAdminMode }) => {
+const AdminSortFilterPanel: React.FC = () => {
     //----ATOMS----
     const [sortOption, setSortOption] = useAtom(sortOptionAtom);
     const [filterOption, setFilterOption] = useAtom(filterOptionAtom);
@@ -22,13 +18,14 @@ const AdminSortFilterPanel: React.FC<AdminSortFilterPanelProps> = ({ setAdminMod
 
     //----STYLING----
     return (
-        <div className="p-4">
-            <div className="mb-4">
-                <label className="block mb-2 font-bold">Sort by Price</label>
+        <div className="flex flex-col sm:flex-row items-start gap-4">
+            {/* Sort by Price */}
+            <div className="flex flex-col">
+                <label className="font-bold mb-1">Sort by Price</label>
                 <select
                     onChange={handleSortChange}
                     value={sortOption}
-                    className="select select-bordered bg-white w-full"
+                    className="select select-bordered bg-white"
                 >
                     <option value="">Select...</option>
                     <option value="price-low-high">Lowest to Highest</option>
@@ -36,12 +33,13 @@ const AdminSortFilterPanel: React.FC<AdminSortFilterPanelProps> = ({ setAdminMod
                 </select>
             </div>
 
-            <div className="mb-4">
-                <label className="block mb-2 font-bold">Filter by Stock</label>
+            {/* Filter by Stock */}
+            <div className="flex flex-col">
+                <label className="font-bold mb-1">Filter by Stock</label>
                 <select
                     onChange={handleFilterChange}
                     value={filterOption}
-                    className="select select-bordered bg-white w-full"
+                    className="select select-bordered bg-white"
                 >
                     <option value="">All</option>
                     <option value="In Stock">In Stock</option>
@@ -50,13 +48,6 @@ const AdminSortFilterPanel: React.FC<AdminSortFilterPanelProps> = ({ setAdminMod
                     <option value="Discontinued">Discontinued</option>
                 </select>
             </div>
-
-            <div className="divider"></div>
-
-            {/*Mode toggle*/}
-            <button className="btn btn-accent w-full" onClick={() => setAdminMode(false)}>
-                Customer Mode
-            </button>
         </div>
     );
 };

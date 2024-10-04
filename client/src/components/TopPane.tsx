@@ -1,16 +1,22 @@
 import React from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
-import {Link} from "react-router-dom";
+import { Link, useLocation } from 'react-router-dom';
 import { searchQueryAtom } from '../atoms/productAtoms';
-import {useAtom} from "jotai";
+import { useAtom } from 'jotai';
+import {FaPerson, FaShield} from "react-icons/fa6";
 
 const TopPane: React.FC = () => {
     //----ATOMS-----
     const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
 
+    //----LOCATION-----
+    const location = useLocation();
+    const isAdmin = location.pathname.startsWith('/admin');
+
     //----STYLING-----
     return (
         <div className="navbar bg-primary text-white shadow-lg p-4">
+            {/* Logo */}
             <div className="flex-1">
                 <Link to="/" className="text-xl font-bold">
                     <img
@@ -21,6 +27,7 @@ const TopPane: React.FC = () => {
                 </Link>
             </div>
 
+            {/* Search Bar */}
             <div className="flex-none w-full max-w-xs mx-auto">
                 <input
                     type="text"
@@ -30,14 +37,27 @@ const TopPane: React.FC = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
             </div>
-            <div className="flex-none ml-4">
+
+            {/* Cart and Mode Toggle */}
+            <div className="flex items-center ml-4 space-x-4">
+                {/* Mode Toggle Button */}
+                {isAdmin ? (
+                    <Link to="/" className="btn btn-primary">
+                        <FaPerson size={20}/> Customer
+                    </Link>
+                ) : (
+                    <Link to="/admin" className="btn btn-primary">
+                        <FaShield size={20} /> Admin
+                    </Link>
+                )}
+               
+                {/* Cart Button */}
                 <Link to="/order-history" className="btn btn-primary btn-circle">
-                    <FaShoppingCart size={20}/>
+                    <FaShoppingCart size={20} />
                 </Link>
             </div>
         </div>
     );
 };
-
 
 export default TopPane;

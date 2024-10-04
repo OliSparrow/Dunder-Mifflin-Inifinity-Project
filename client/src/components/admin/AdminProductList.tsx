@@ -1,17 +1,22 @@
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
-import { filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom, Product } from '../../atoms/productAtoms.ts';
+import {
+    filterOptionAtom,
+    productsAtom,
+    sortOptionAtom,
+    Product,
+} from '../../atoms/productAtoms';
 import { FaTrash, FaCheck, FaEdit } from 'react-icons/fa';
-import AddProductForm from './CRUD/AddProductForm.tsx';
+import AddProductForm from './CRUD/AddProductForm';
 import EditProductForm from './CRUD/EditProductForm';
 import axios from 'axios';
+import AdminSortFilterPanel from './AdminSortFilterPanel';
 
 const AdminProductList: React.FC = () => {
     // ---- ATOMS ----
     const [products, setProducts] = useAtom(productsAtom);
     const [filterOption] = useAtom(filterOptionAtom);
     const [sortOption] = useAtom(sortOptionAtom);
-    const [searchQuery] = useAtom(searchQueryAtom);
 
     // ---- USE STATES ----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -37,14 +42,7 @@ const AdminProductList: React.FC = () => {
             matchesFilter = product.discontinued;
         }
 
-        // Filter by search query
-        let matchesSearchQuery = true;
-        if (searchQuery) {
-            matchesSearchQuery = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-        }
-
-        // Return true if both conditions are met
-        return matchesFilter && matchesSearchQuery;
+        return matchesFilter;
     });
 
     const sortedProducts = filteredProducts.sort((a, b) => {
@@ -72,13 +70,19 @@ const AdminProductList: React.FC = () => {
 
     const handleDeleteSelected = async () => {
         if (selectedProducts.length > 0) {
-            const confirmed = window.confirm('Are you sure you want to delete the selected products?');
+            const confirmed = window.confirm(
+                'Are you sure you want to delete the selected products?'
+            );
             if (confirmed) {
                 try {
                     await Promise.all(
-                        selectedProducts.map((id) => axios.delete(`http://localhost:5000/api/paper/${id}`))
+                        selectedProducts.map((id) =>
+                            axios.delete(`http://localhost:5000/api/paper/${id}`)
+                        )
                     );
-                    setProducts(products.filter((product) => !selectedProducts.includes(product.id)));
+                    setProducts(
+                        products.filter((product) => !selectedProducts.includes(product.id))
+                    );
                     setSelectedProducts([]);
                     setDeleteMode(false);
                 } catch (error) {
@@ -91,7 +95,9 @@ const AdminProductList: React.FC = () => {
     };
 
     const handleDeleteProduct = async (id: number) => {
-        const confirmed = window.confirm('Are you sure you want to delete this product?');
+        const confirmed = window.confirm(
+            'Are you sure you want to delete this product?'
+        );
         if (confirmed) {
             try {
                 await axios.delete(`http://localhost:5000/api/paper/${id}`);
@@ -114,20 +120,30 @@ const AdminProductList: React.FC = () => {
     // ---- STYLING ----
     return (
         <div className="w-full p-4">
-            <div className="flex flex-wrap items-center mb-4 gap-2">
-                <button className="btn btn-primary" onClick={handleAddProductClick}>
-                    Add Product
-                </button>
+            {/* Action Buttons and Sort/Filter Panel */}
+            <div className="flex flex-wrap items-center justify-between mb-4">
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                    <button className="btn btn-primary" onClick={handleAddProductClick}>
+                        Add Product
+                    </button>
 
-                <button
-                    className={`btn ${deleteMode ? 'btn-warning' : 'btn-error'}`}
-                    onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}
-                >
-                    {deleteMode ? 'Delete Selected' : 'Delete Multiple'}
-                </button>
+                    <button
+                        className={`btn ${deleteMode ? 'btn-warning' : 'btn-error'}`}
+                        onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}
+                    >
+                        {deleteMode ? 'Delete Selected' : 'Delete Multiple'}
+                    </button>
+                </div>
+
+                {/* Sort and Filter Panel */}
+                <div className="w-full sm:w-auto mt-4 sm:mt-0">
+                    <AdminSortFilterPanel />
+                </div>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Product Table */}
+            <div className="overflow-x-auto shadow-md">
                 <table className="table table-zebra w-full">
                     <thead>
                     <tr>
@@ -215,6 +231,5 @@ const AdminProductList: React.FC = () => {
         </div>
     );
 };
-
 
 export default AdminProductList;
