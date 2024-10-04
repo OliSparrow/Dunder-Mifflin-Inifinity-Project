@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 
-.tests/bin/Debug
+tests/bin/Debug
