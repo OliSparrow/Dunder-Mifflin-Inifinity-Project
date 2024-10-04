@@ -7,12 +7,12 @@ const AdminDashboard: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'products' | 'properties'>('products');
 
     return (
-        <div className="w-full p-4 bg-base-100">
+        <div className="w-full p-4 ">
             {/* Tabs */}
-            <div className="tabs tabs-lifted">
+            <div role="tablist" className="tabs tabs-boxed bg-white rounded-lg shadow-md">
                 <a
                     className={`tab tab-lifted ${
-                        activeTab === 'products' ? 'tab-active text-primary' : ''
+                        activeTab === 'products' ? 'tab-active text-primary ' : ''
                     }`}
                     onClick={() => setActiveTab('products')}
                 >
@@ -31,12 +31,12 @@ const AdminDashboard: React.FC = () => {
             {/* Content */}
             <div className="mt-4">
                 {activeTab === 'products' && (
-                    <div className="bg-base-100 border-base-300 rounded-box p-6">
+                    <div className="bg-white rounded-lg shadow-md border-base-300 rounded-box p-6">
                         <AdminProductList />
                     </div>
                 )}
                 {activeTab === 'properties' && (
-                    <div className="bg-base-100 border-base-300 rounded-box p-6">
+                    <div className="bg-white rounded-lg shadow-md border-base-300 p-6">
                         <AdminPropertyList />
                     </div>
                 )}

@@ -113,17 +113,17 @@ const AdminProductList: React.FC = () => {
 
     // ---- STYLING ----
     return (
-        <div className="w-full p-4 bg-base-100">
-            <button className="btn btn-primary mb-4 mr-1" onClick={handleAddProductClick}>
+        <div className="w-full p-4">
+            <button className="btn btn-primary mb-4" onClick={handleAddProductClick}>
                 Add Product
             </button>
-
+            
             <button
-                className={`btn mb-4 ${deleteMode ? 'btn-warning' : 'btn-error'}`}
-                onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}
-            >
+                className={`btn mb-2 ${deleteMode ? 'btn-warning' : 'btn-error'}`}
+                onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}>
                 {deleteMode ? 'Delete Selected' : 'Delete Multiple'}
             </button>
+            
 
             <table className="table bg-white shadow-md table-zebra w-full">
                 <thead>
@@ -131,7 +131,7 @@ const AdminProductList: React.FC = () => {
                     <th>{deleteMode ? 'Select' : 'Delete'}</th>
                     <th>Name</th>
                     <th>Price</th>
-                    <th>Storage</th>
+                    <th>Stock</th>
                     <th>Discontinued</th>
                     <th>Properties</th>
                     <th>Actions</th>
@@ -167,16 +167,18 @@ const AdminProductList: React.FC = () => {
                                 />
                             )}
                         </td>
-                        <td>{product.name}</td>
-                        <td>{product.price}$,-</td>
+                        <td className="whitespace-normal break-words">{product.name}</td>
+                        <td>{product.price}$</td>
                         <td>{product.stock}</td>
                         <td>{product.discontinued ? 'Yes' : 'No'}</td>
-                        <td>{product.paperProperties.map((pp) => pp.property.property_name).join(', ')}</td>
+                        <td className="whitespace-normal break-words">
+                            {product.paperProperties.map((pp) => pp.property.property_name).join(', ')}
+                        </td>
                         <td>
                             <FaEdit
-                                className="cursor-pointer text-blue-600 size-4"
+                                className="cursor-pointer text-blue-600"
                                 onClick={(e) => {
-                                    e.stopPropagation(); // Prevents triggering row click
+                                    e.stopPropagation(); 
                                     handleEditProductClick(product);
                                 }}
                             />
@@ -185,7 +187,7 @@ const AdminProductList: React.FC = () => {
                 ))}
                 </tbody>
             </table>
-
+            
             {showAddForm && <AddProductForm onClose={() => setShowAddForm(false)} />}
 
             {editingProduct && (

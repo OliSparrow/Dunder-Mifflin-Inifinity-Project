@@ -50,7 +50,7 @@ const AdminPropertyList: React.FC = () => {
 
     //---- STYLING -----
     return (
-        <div className="w-full p-4 bg-base-100">
+        <div className="w-full p-4">
             <button className="btn btn-primary mb-4" onClick={handleAddPropertyClick}>
                 Add Property
             </button>
