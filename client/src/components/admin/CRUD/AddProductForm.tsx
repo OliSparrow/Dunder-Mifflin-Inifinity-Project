@@ -1,40 +1,61 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import { useAtom } from 'jotai';
-import { productsAtom } from '../../../atoms/productAtoms.ts';
+import {productsAtom, propertiesAtom, Property} from '../../../atoms/productAtoms.ts';
 import axios from "axios";
+
 
 const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     //----ATOMS----
     const [products, setProducts] = useAtom(productsAtom);
+    const [properties, setProperties] = useAtom(propertiesAtom);
 
     //----USE STATES----
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
-    const [stock, setStock] = useState(0); 
+    const [stock, setStock] = useState(0);
     const [discontinued, setDiscontinued] = useState(false);
+    const [selectedProperties, setSelectedProperties] = useState<number[]>([]);
 
+    //----USE EFFECTS----
+    useEffect(() => {
+        const fetchProperties = async () => {
+            try {
+                const response = await axios.get<Property[]>('http://localhost:5000/api/property');
+                setProperties(response.data);
+            } catch (error) {
+                console.error('Error fetching properties', error);
+            }
+        };
+
+        if (properties.length === 0) {
+            fetchProperties();
+        }
+    }, [properties, setProperties]);
+    
     //----HANDLERS----
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         const newProduct = {
-            name,
-            price: parseFloat(price),
-            stock: parseInt(stock.toString()),
-            discontinued,
+            paper: {
+                name,
+                price: parseFloat(price),
+                stock,
+                discontinued,
+            },
+            propertyIds: selectedProperties,
         };
 
-        console.log("Submitting product:", newProduct);
+        console.log('Submitting product:', newProduct);
 
         try {
             const response = await axios.post('http://localhost:5000/api/paper', newProduct);
             setProducts([...products, response.data]);
-            onClose();  //Close modal after submission
+            onClose();
         } catch (error) {
             console.error('Error adding product:', error);
         }
     };
-
     
     const handleModalContentClick = (e: React.MouseEvent) => {
         e.stopPropagation(); //Makes sure that it only closes on background clicks
@@ -46,7 +67,7 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <div className="modal-box" onClick={handleModalContentClick}>
                 <h3 className="font-bold text-lg">Add New Product</h3>
                 <form onSubmit={handleSubmit}>
-                    {/*Product Name*/}
+                    {/* Product Name */}
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Product Name</span>
@@ -60,7 +81,7 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         />
                     </div>
 
-                    {/*Product Price*/}
+                    {/* Product Price */}
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Price</span>
@@ -75,7 +96,7 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         />
                     </div>
 
-                    {/*Stock Quantity*/}
+                    {/* Stock Quantity */}
                     <div className="form-control">
                         <label className="label">
                             <span className="label-text">Stock Quantity</span>
@@ -89,7 +110,7 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         />
                     </div>
 
-                    {/*Discontinued Toggle*/}
+                    {/* Discontinued Toggle */}
                     <div className="form-control">
                         <label className="label cursor-pointer">
                             <span className="label-text">Discontinued</span>
@@ -102,7 +123,34 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         </label>
                     </div>
 
-                    {/*Action Buttons*/}
+                    {/* Property Selection */}
+                    <div className="form-control">
+                        <label className="label">
+                            <span className="label-text">Select Properties</span>
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                            {properties.map((property) => (
+                                <label key={property.id} className="cursor-pointer flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        value={property.id}
+                                        checked={selectedProperties.includes(property.id)}
+                                        onChange={(e) => {
+                                            const propertyId = parseInt(e.target.value);
+                                            setSelectedProperties((prevSelected) =>
+                                                prevSelected.includes(propertyId)
+                                                    ? prevSelected.filter((id) => id !== propertyId)
+                                                    : [...prevSelected, propertyId]
+                                            );
+                                        }}
+                                    />
+                                    <span>{property.property_name}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
                     <div className="modal-action">
                         <button type="button" className="btn" onClick={onClose}>
                             Cancel

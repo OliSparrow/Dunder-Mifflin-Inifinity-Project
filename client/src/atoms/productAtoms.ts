@@ -5,14 +5,23 @@ export interface Product {
     name: string;
     price: number;
     stock: number;  
-    discontinued: boolean; 
-   // properties?: number[]; //removed for now
+    discontinued: boolean;
+    paperProperties: PaperProperty[];
+}
+
+export interface PaperProperty {
+    paperId: number;
+    propertyId: number;
+    property: Property;
 }
 
 export interface Property {
     id: number;
     property_name: string;
 }
+
+//Atom for holding the property list
+export const propertiesAtom = atom<Property[]>([]);
 
 //Atom for managing the current page in the product list
 export const currentPageAtom = atom(1);

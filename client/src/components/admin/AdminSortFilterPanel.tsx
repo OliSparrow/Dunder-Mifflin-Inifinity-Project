@@ -1,6 +1,6 @@
 import React from 'react';
-import {useAtom} from "jotai/index";
-import {filterOptionAtom, sortOptionAtom} from "../../atoms/productAtoms.ts";
+import { useAtom } from 'jotai';
+import { filterOptionAtom, sortOptionAtom } from '../../atoms/productAtoms';
 
 interface AdminSortFilterPanelProps {
     setAdminMode: (value: boolean) => void;
@@ -25,8 +25,11 @@ const AdminSortFilterPanel: React.FC<AdminSortFilterPanelProps> = ({ setAdminMod
         <div className="p-4">
             <div className="mb-4">
                 <label className="block mb-2 font-bold">Sort by Price</label>
-                <select onChange={handleSortChange} value={sortOption}
-                        className="select select-bordered bg-white w-full">
+                <select
+                    onChange={handleSortChange}
+                    value={sortOption}
+                    className="select select-bordered bg-white w-full"
+                >
                     <option value="">Select...</option>
                     <option value="price-low-high">Lowest to Highest</option>
                     <option value="price-high-low">Highest to Lowest</option>
@@ -34,23 +37,26 @@ const AdminSortFilterPanel: React.FC<AdminSortFilterPanelProps> = ({ setAdminMod
             </div>
 
             <div className="mb-4">
-                <label className="block mb-2 font-bold">Filter by Storage</label>
-                <select onChange={handleFilterChange} value={filterOption}
-                        className="select select-bordered bg-white w-full">
+                <label className="block mb-2 font-bold">Filter by Stock</label>
+                <select
+                    onChange={handleFilterChange}
+                    value={filterOption}
+                    className="select select-bordered bg-white w-full"
+                >
                     <option value="">All</option>
                     <option value="In Stock">In Stock</option>
                     <option value="Out of Stock">Out of Stock</option>
                     <option value="Low Stock">Low Stock</option>
+                    <option value="Discontinued">Discontinued</option>
                 </select>
             </div>
 
             <div className="divider"></div>
 
-
-                {/*Mode toggle*/}
-                <button className="btn btn-accent w-full" onClick={() => setAdminMode(false)}>
-                    Customer
-                </button>
+            {/*Mode toggle*/}
+            <button className="btn btn-accent w-full" onClick={() => setAdminMode(false)}>
+                Customer Mode
+            </button>
         </div>
     );
 };

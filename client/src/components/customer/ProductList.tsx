@@ -9,8 +9,8 @@ import {
     Product
 } from "../../atoms/productAtoms.ts";
 import SortFilterPanel from './SortFilterPanel';
-import AdminProductList from '../admin/AdminProductList.tsx'
-import AdminSortFilterPanel from '../admin/AdminSortFilterPanel.tsx'
+import AdminSortFilterPanel from '../admin/AdminSortFilterPanel';
+import AdminDashboard from '../admin/AdminDashboard';
 import {Link} from "react-router-dom";
 import axios from 'axios';
 import { FaCheckCircle, FaExclamationCircle, FaTimesCircle } from "react-icons/fa";
@@ -120,13 +120,13 @@ const ProductList: React.FC = () => {
                     <div className="divider divider-horizontal"></div>
 
                     <div className="flex-grow">
-                        <AdminProductList />
+                        <AdminDashboard />
                     </div>
                 </div>
             ) : (
                 <div className="flex w-full">
                     <div className="w-1/5">
-                        <SortFilterPanel setAdminMode={setAdminMode} />
+                        <SortFilterPanel setAdminMode={setAdminMode} isAdminMode={adminMode} />
                     </div>
 
                     <div className="divider divider-horizontal"></div>

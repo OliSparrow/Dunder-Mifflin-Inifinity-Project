@@ -11,7 +11,7 @@ namespace Server.Models
         [Column("property_id")]
         public int PropertyId { get; set; }
 
-        public required Paper Paper { get; set; }
-        public required Property Property { get; set; }
+        public Paper? Paper { get; set; }
+        public Property? Property { get; set; }
     }
 }

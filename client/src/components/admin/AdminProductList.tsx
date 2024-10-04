@@ -1,4 +1,3 @@
-// AdminProductList.tsx
 import React, { useState } from 'react';
 import { useAtom } from 'jotai';
 import { filterOptionAtom, productsAtom, sortOptionAtom, searchQueryAtom, Product } from '../../atoms/productAtoms.ts';
@@ -115,8 +114,6 @@ const AdminProductList: React.FC = () => {
     // ---- STYLING ----
     return (
         <div className="w-full p-4 bg-base-100">
-            <h1 className="text-2xl font-bold mb-4">Manage Products</h1>
-
             <button className="btn btn-primary mb-4 mr-1" onClick={handleAddProductClick}>
                 Add Product
             </button>
@@ -136,6 +133,7 @@ const AdminProductList: React.FC = () => {
                     <th>Price</th>
                     <th>Storage</th>
                     <th>Discontinued</th>
+                    <th>Properties</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -173,6 +171,7 @@ const AdminProductList: React.FC = () => {
                         <td>{product.price}$,-</td>
                         <td>{product.stock}</td>
                         <td>{product.discontinued ? 'Yes' : 'No'}</td>
+                        <td>{product.paperProperties.map((pp) => pp.property.property_name).join(', ')}</td>
                         <td>
                             <FaEdit
                                 className="cursor-pointer text-blue-600 size-4"
