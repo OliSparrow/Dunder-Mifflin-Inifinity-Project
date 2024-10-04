@@ -67,7 +67,7 @@ const AdminPropertyList: React.FC = () => {
                     {properties.map((property) => (
                         <tr key={property.id}>
                             <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4">
-                                {property.property_name}
+                                {property.propertyName}
                             </td>
                             <td className="p-2 md:p-4">
                                 <FaEdit

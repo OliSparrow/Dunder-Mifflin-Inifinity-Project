@@ -17,7 +17,8 @@ export interface PaperProperty {
 
 export interface Property {
     id: number;
-    property_name: string;
+    propertyName: string;
+    paperProperties: PaperProperty[];
 }
 
 //Atom for holding the property list

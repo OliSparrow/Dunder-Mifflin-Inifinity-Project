@@ -19,7 +19,7 @@ const AddPropertyForm: React.FC<AddPropertyFormProps> = ({ onClose, property }) 
     //---- USE EFFECTS ----
     useEffect(() => {
         if (property) {
-            setPropertyName(property.property_name);
+            setPropertyName(property.propertyName);
         }
     }, [property]);
 

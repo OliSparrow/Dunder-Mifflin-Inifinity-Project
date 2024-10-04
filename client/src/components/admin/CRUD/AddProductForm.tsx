@@ -144,7 +144,7 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                             );
                                         }}
                                     />
-                                    <span>{property.property_name}</span>
+                                    <span>{property.propertyName}</span>
                                 </label>
                             ))}
                         </div>

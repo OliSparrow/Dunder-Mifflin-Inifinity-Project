@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { useAtom } from 'jotai';
 import {
     filterOptionAtom,
@@ -24,6 +24,19 @@ const AdminProductList: React.FC = () => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get<Product[]>('http://localhost:5000/api/Paper');
+                setProducts(response.data);
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+
+        fetchProducts();
+    }, [setProducts]);
+    
     // ---- FILTER AND SORT ----
     const filteredProducts = products.filter((product) => {
         let matchesFilter = true;
@@ -202,7 +215,7 @@ const AdminProductList: React.FC = () => {
                             </td>
                             <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4 hidden lg:table-cell">
                                 {product.paperProperties
-                                    .map((pp) => pp.property.property_name)
+                                    .map((pp) => pp.property.propertyName)
                                     .join(', ')}
                             </td>
                             <td className="p-2 md:p-4">
