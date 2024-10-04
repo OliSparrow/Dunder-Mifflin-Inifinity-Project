@@ -55,31 +55,35 @@ const AdminPropertyList: React.FC = () => {
                 Add Property
             </button>
 
-            <table className="table bg-white shadow-md table-zebra w-full">
-                <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {properties.map((property) => (
-                    <tr key={property.id}>
-                        <td>{property.property_name}</td>
-                        <td>
-                            <FaEdit
-                                className="cursor-pointer text-blue-600 size-4 mr-2"
-                                onClick={() => handleEditPropertyClick(property)}
-                            />
-                            <FaTrash
-                                className="cursor-pointer text-red-600 size-4"
-                                onClick={() => handleDeleteProperty(property.id)}
-                            />
-                        </td>
+            <div className="overflow-x-auto">
+                <table className="table table-zebra w-full">
+                    <thead>
+                    <tr>
+                        <th>Property Name</th>
+                        <th>Actions</th>
                     </tr>
-                ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    {properties.map((property) => (
+                        <tr key={property.id}>
+                            <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4">
+                                {property.property_name}
+                            </td>
+                            <td className="p-2 md:p-4">
+                                <FaEdit
+                                    className="cursor-pointer text-blue-600 mr-2"
+                                    onClick={() => handleEditPropertyClick(property)}
+                                />
+                                <FaTrash
+                                    className="cursor-pointer text-red-600"
+                                    onClick={() => handleDeleteProperty(property.id)}
+                                />
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
 
             {showAddForm && <AddPropertyForm onClose={() => setShowAddForm(false)} />}
 

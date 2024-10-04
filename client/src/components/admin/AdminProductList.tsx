@@ -114,87 +114,107 @@ const AdminProductList: React.FC = () => {
     // ---- STYLING ----
     return (
         <div className="w-full p-4">
-            <button className="btn btn-primary mb-4" onClick={handleAddProductClick}>
-                Add Product
-            </button>
-            
-            <button
-                className={`btn mb-2 ${deleteMode ? 'btn-warning' : 'btn-error'}`}
-                onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}>
-                {deleteMode ? 'Delete Selected' : 'Delete Multiple'}
-            </button>
-            
+            <div className="flex flex-wrap items-center mb-4 gap-2">
+                <button className="btn btn-primary" onClick={handleAddProductClick}>
+                    Add Product
+                </button>
 
-            <table className="table bg-white shadow-md table-zebra w-full">
-                <thead>
-                <tr>
-                    <th>{deleteMode ? 'Select' : 'Delete'}</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Discontinued</th>
-                    <th>Properties</th>
-                    <th>Actions</th>
-                </tr>
-                </thead>
-                <tbody>
-                {sortedProducts.map((product) => (
-                    <tr
-                        key={product.id}
-                        className={`${
-                            deleteMode && selectedProducts.includes(product.id) ? 'bg-red-200' : ''
-                        }`}
-                        onClick={() => {
-                            if (deleteMode) {
-                                handleSelectProduct(product.id);
-                            }
-                        }}
-                    >
-                        <td>
-                            {deleteMode ? (
-                                selectedProducts.includes(product.id) ? (
-                                    <FaCheck className="text-green-600" />
+                <button
+                    className={`btn ${deleteMode ? 'btn-warning' : 'btn-error'}`}
+                    onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}
+                >
+                    {deleteMode ? 'Delete Selected' : 'Delete Multiple'}
+                </button>
+            </div>
+
+            <div className="overflow-x-auto">
+                <table className="table table-zebra w-full">
+                    <thead>
+                    <tr>
+                        <th>{deleteMode ? 'Select' : 'Delete'}</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Discontinued</th>
+                        <th className="hidden lg:table-cell">Properties</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {sortedProducts.map((product) => (
+                        <tr
+                            key={product.id}
+                            className={`${
+                                deleteMode && selectedProducts.includes(product.id)
+                                    ? 'bg-red-200'
+                                    : ''
+                            }`}
+                            onClick={() => {
+                                if (deleteMode) {
+                                    handleSelectProduct(product.id);
+                                }
+                            }}
+                        >
+                            <td>
+                                {deleteMode ? (
+                                    selectedProducts.includes(product.id) ? (
+                                        <FaCheck className="text-green-600" />
+                                    ) : (
+                                        <span></span>
+                                    )
                                 ) : (
-                                    <span></span>
-                                )
-                            ) : (
-                                <FaTrash
-                                    className="cursor-pointer text-red-600"
+                                    <FaTrash
+                                        className="cursor-pointer text-red-600"
+                                        onClick={(e) => {
+                                            e.stopPropagation(); // Prevents triggering row click
+                                            handleDeleteProduct(product.id);
+                                        }}
+                                    />
+                                )}
+                            </td>
+                            <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4">
+                                {product.name}
+                            </td>
+                            <td className="text-sm md:text-base p-2 md:p-4">
+                                {product.price}$
+                            </td>
+                            <td className="text-sm md:text-base p-2 md:p-4">
+                                {product.stock}
+                            </td>
+                            <td className="text-sm md:text-base p-2 md:p-4">
+                                {product.discontinued ? 'Yes' : 'No'}
+                            </td>
+                            <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4 hidden lg:table-cell">
+                                {product.paperProperties
+                                    .map((pp) => pp.property.property_name)
+                                    .join(', ')}
+                            </td>
+                            <td className="p-2 md:p-4">
+                                <FaEdit
+                                    className="cursor-pointer text-blue-600"
                                     onClick={(e) => {
                                         e.stopPropagation(); // Prevents triggering row click
-                                        handleDeleteProduct(product.id);
+                                        handleEditProductClick(product);
                                     }}
                                 />
-                            )}
-                        </td>
-                        <td className="whitespace-normal break-words">{product.name}</td>
-                        <td>{product.price}$</td>
-                        <td>{product.stock}</td>
-                        <td>{product.discontinued ? 'Yes' : 'No'}</td>
-                        <td className="whitespace-normal break-words">
-                            {product.paperProperties.map((pp) => pp.property.property_name).join(', ')}
-                        </td>
-                        <td>
-                            <FaEdit
-                                className="cursor-pointer text-blue-600"
-                                onClick={(e) => {
-                                    e.stopPropagation(); 
-                                    handleEditProductClick(product);
-                                }}
-                            />
-                        </td>
-                    </tr>
-                ))}
-                </tbody>
-            </table>
-            
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
+
             {showAddForm && <AddProductForm onClose={() => setShowAddForm(false)} />}
 
             {editingProduct && (
-                <EditProductForm product={editingProduct} onClose={() => setEditingProduct(null)} />
+                <EditProductForm
+                    product={editingProduct}
+                    onClose={() => setEditingProduct(null)}
+                />
             )}
         </div>
     );
 };
+
 
 export default AdminProductList;
