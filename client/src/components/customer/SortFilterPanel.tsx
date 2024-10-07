@@ -54,7 +54,6 @@ const SortFilterPanel: React.FC = () => {
                     <option value="In Stock">In Stock</option>
                     <option value="Out of Stock">Out of Stock</option>
                     <option value="Low Stock">Low Stock</option>
-                    <option value="Discontinued">Discontinued</option>
                 </select>
             </div>
             
