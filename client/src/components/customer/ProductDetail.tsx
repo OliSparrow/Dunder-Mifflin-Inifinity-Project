@@ -1,19 +1,20 @@
-import React, {useState} from "react";
-import {useParams} from "react-router-dom";
-import {useAtom} from "jotai";
-import {productsAtom} from "../../atoms/productAtoms.ts";
-import {FiShoppingCart} from "react-icons/fi";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAtom } from "jotai";
+import { productsAtom } from "../../atoms/productAtoms.ts";
+import { FiShoppingCart, FiArrowLeft } from "react-icons/fi";
 
-//Component that will be responsible for displaying more detailed info about a product
 const ProductDetail: React.FC = () => {
-    //----ATOMS-----
+    //---- ATOMS -----
     const [products] = useAtom(productsAtom);
 
-    //----FIND PRODUCT BY ID-----
+    //---- FIND PRODUCT BY ID -----
     const { id } = useParams<{ id: string }>();
-    const [quantity, setQuantity] = useState<number>(1);  //Manage quantity selected by user
-    const product = products.find((p) => p.id === Number(id)); //Actually finding the product
-    if (!product) {  //If product isn't found, display a message:
+    const [quantity, setQuantity] = useState<number>(1);
+    const product = products.find((p) => p.id === Number(id));
+    const navigate = useNavigate(); 
+
+    if (!product) {  
         return (
             <div className="p-4 bg-base-100 min-h-screen">
                 <h1 className="text-3xl font-bold mb-4">Product not found</h1>
@@ -22,9 +23,9 @@ const ProductDetail: React.FC = () => {
         );
     }
 
-    //------HANDLERS-------
+    //------ HANDLERS ------
     const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newQuantity = Math.max(1, Number(e.target.value)); // Ensure at least 1 item
+        const newQuantity = Math.max(1, Number(e.target.value)); 
         setQuantity(newQuantity);
     };
 
@@ -33,20 +34,41 @@ const ProductDetail: React.FC = () => {
         alert(`Added ${quantity} of ${product.name} to the cart`);
     };
 
-    //----STYLING-----
+    const handleBackToList = () => {
+        navigate('/'); //Navigate back to the product list page
+    };
+
+    //------ RENDER PROPERTIES ------
+    const renderProperties = () => {
+        if (product.paperProperties.length === 0) {
+            return <p>No Properties</p>;
+        }
+
+        return (
+            <ul className="list-disc list-inside">
+                {product.paperProperties.map((pp) => (
+                    <li key={pp.propertyId}>{pp.property.propertyName}</li>
+                ))}
+            </ul>
+        );
+    };
+
+    //---- STYLING -----
     return (
         <div className="p-4 bg-base-100 min-h-screen">
             <div className="card shadow-lg bg-white text-base-content p-6">
-                {/*Product details*/}
+                {/* Product details */}
                 <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
                 <p className="text-lg mb-2">Price: ${product.price}</p>
-                <p className="text-md mb-6">Storage: {product.storage}</p>
+                <p className="text-md mb-6">Storage: {product.stock}</p>
 
-                <div className="text-sm mb-6">
-                    This is a detailed description of the product with ID {id}.
+                {/* Product properties */}
+                <div className="mb-6">
+                    <h2 className="text-xl font-semibold mb-2">Properties</h2>
+                    {renderProperties()}
                 </div>
 
-                {/*Button to add + quantity input*/}
+                {/* Button to add + quantity input */}
                 <div className="flex justify-end items-center gap-4">
                     <input
                         id="quantity"
@@ -61,6 +83,13 @@ const ProductDetail: React.FC = () => {
                         Add to Cart
                     </button>
                 </div>
+            </div>
+            {/* Back to Product List Button */}
+            <div className="mt-6">
+                <button className="btn btn-outline" onClick={handleBackToList}>
+                    <FiArrowLeft />
+                    Back
+                </button>
             </div>
         </div>
     );
