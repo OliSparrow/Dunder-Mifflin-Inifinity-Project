@@ -68,6 +68,13 @@ namespace Server.Controllers
             {
                 foreach (var propertyId in propertyIds)
                 {
+                    // Verify that the Property exists
+                    var property = await _context.Properties.FindAsync(propertyId);
+                    if (property == null)
+                    {
+                        return BadRequest($"Property with ID {propertyId} does not exist.");
+                    }
+
                     var paperProperty = new PaperProperty
                     {
                         PaperId = paper.Id,
@@ -79,8 +86,14 @@ namespace Server.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            return CreatedAtAction(nameof(GetPaper), new { id = paper.Id }, paper);
+            var createdPaper = await _context.Papers
+                .Include(p => p.PaperProperties)
+                .ThenInclude(pp => pp.Property)
+                .FirstOrDefaultAsync(p => p.Id == paper.Id);
+
+            return CreatedAtAction(nameof(GetPaper), new { id = paper.Id }, createdPaper);
         }
+
 
         // PUT: api/Paper/{id}
         [HttpPut("{id}")]
@@ -144,7 +157,13 @@ namespace Server.Controllers
                 }
             }
 
-            return NoContent();
+            // Retrieve the updated paper with properties to return
+    		var updatedPaper = await _context.Papers
+        		.Include(p => p.PaperProperties)
+            		.ThenInclude(pp => pp.Property)
+        	.FirstOrDefaultAsync(p => p.Id == id);
+
+    		return Ok(updatedPaper);
         }
 
         // DELETE: api/Paper/{id}

@@ -28,9 +28,9 @@ namespace Server
             // Add CORS policy to allow requests from React app
             services.AddCors(options =>
             {
-                options.AddPolicy("AllowReactApp",
+                options.AddPolicy("AllowAll",
                     builder => builder
-                        .WithOrigins("http://localhost:5173")
+                        .AllowAnyOrigin()
                         .AllowAnyMethod()
                         .AllowAnyHeader());
             });

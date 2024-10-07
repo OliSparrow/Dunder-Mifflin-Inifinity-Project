@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import { productsAtom, Product } from '../../atoms/productAtoms';
+import { Product, productsAtom } from '../../atoms/productAtoms';
 import { FaTrash, FaCheck, FaEdit, FaFilter } from 'react-icons/fa';
 import AddProductForm from './CRUD/AddProductForm';
 import EditProductForm from './CRUD/EditProductForm';
@@ -9,6 +9,7 @@ import axios from 'axios';
 const AdminProductList: React.FC = () => {
     // ---- ATOMS ----
     const [products, setProducts] = useAtom(productsAtom);
+    // const [properties, setProperties] = useAtom(propertiesAtom); // Ensure properties are loaded
 
     // ---- USE STATES ----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
@@ -333,7 +334,7 @@ const AdminProductList: React.FC = () => {
                             </td>
                             <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4 hidden lg:table-cell">
                                 {product.paperProperties
-                                    .map((pp) => pp.property.propertyName)
+                                    .map((pp) => pp.property?.propertyName || 'Unknown')
                                     .join(', ')}
                             </td>
                             <td className="p-2 md:p-4">

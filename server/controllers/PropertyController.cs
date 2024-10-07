@@ -49,9 +49,7 @@ namespace Server.Controllers
 
             return CreatedAtAction(nameof(GetProperty), new { id = property.Id }, property);
         }
-
-        // PUT: api/Property/{id}
-        [HttpPut("{id}")]
+        
         // PUT: api/Property/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> EditProperty(int id, [FromBody] Property property)

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { useAtom } from 'jotai';
-import {productsAtom, propertiesAtom, Property} from '../../../atoms/productAtoms.ts';
+import {Product, productsAtom, propertiesAtom, Property} from '../../../atoms/productAtoms.ts';
 import axios from "axios";
 
 
@@ -49,7 +49,7 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         console.log('Submitting product:', newProduct);
 
         try {
-            const response = await axios.post('http://localhost:5000/api/paper', newProduct);
+            const response = await axios.post<Product>('http://localhost:5000/api/paper', newProduct);
             setProducts([...products, response.data]);
             onClose();
         } catch (error) {
