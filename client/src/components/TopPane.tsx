@@ -40,6 +40,7 @@ const TopPane: React.FC = () => {
 
             {/* Cart and Mode Toggle */}
             <div className="flex items-center ml-4 space-x-4">
+
                 {/* Mode Toggle Button */}
                 {isAdmin ? (
                     <Link to="/" className="btn btn-primary">

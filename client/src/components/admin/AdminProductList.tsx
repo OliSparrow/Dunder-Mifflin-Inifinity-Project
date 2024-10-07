@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import { Product, productsAtom } from '../../atoms/productAtoms';
+import {Product, productsAtom, searchQueryAtom} from '../../atoms/productAtoms';
 import { FaTrash, FaCheck, FaEdit, FaFilter } from 'react-icons/fa';
 import AddProductForm from './CRUD/AddProductForm';
 import EditProductForm from './CRUD/EditProductForm';
@@ -9,8 +9,8 @@ import axios from 'axios';
 const AdminProductList: React.FC = () => {
     // ---- ATOMS ----
     const [products, setProducts] = useAtom(productsAtom);
-    // const [properties, setProperties] = useAtom(propertiesAtom); // Ensure properties are loaded
-
+    const [searchQuery] = useAtom(searchQueryAtom);
+    
     // ---- USE STATES ----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
     const [deleteMode, setDeleteMode] = useState(false);
@@ -58,8 +58,13 @@ const AdminProductList: React.FC = () => {
         if (filterOptions.discontinued) {
             matchesFilter = matchesFilter && product.discontinued;
         }
+        // Filter by search query
+        let matchesSearchQuery = true;
+        if (searchQuery) {
+            matchesSearchQuery = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+        }
 
-        return matchesFilter;
+        return matchesFilter && matchesSearchQuery;
     });
 
     // Apply sorting based on sortOption
