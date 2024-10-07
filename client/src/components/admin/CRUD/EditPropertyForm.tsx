@@ -27,12 +27,17 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({ property, onClose, 
         }
 
         try {
-            const response = await axios.put<Property>(
+            await axios.put(
                 `http://localhost:5000/api/property/${property.id}`,
                 { id: property.id, propertyName },
                 { headers: { 'Content-Type': 'application/json' } }
             );
-            onUpdate(response.data);
+            // Manually construct the updated property
+            const updatedProperty: Partial<Property> & { id: number } = {
+                id: property.id,
+                propertyName,
+            };
+            onUpdate(updatedProperty);
             onClose();
         } catch (err: any) {
             console.error('Error updating property:', err);

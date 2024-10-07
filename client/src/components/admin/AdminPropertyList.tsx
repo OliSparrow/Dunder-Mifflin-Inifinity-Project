@@ -124,7 +124,7 @@ const AdminPropertyList: React.FC = () => {
                     )}
 
                     <button
-                        className={`btn ${deleteMode ? 'btn-error' : 'btn-warning'}`}
+                        className={`btn ${deleteMode ? 'btn-error' : 'btn-error'}`}
                         onClick={handleDeleteButtonClick}
                     >
                         {deleteMode

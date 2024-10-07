@@ -52,6 +52,8 @@ namespace Server.Controllers
 
         // PUT: api/Property/{id}
         [HttpPut("{id}")]
+        // PUT: api/Property/{id}
+        [HttpPut("{id}")]
         public async Task<IActionResult> EditProperty(int id, [FromBody] Property property)
         {
             if (id != property.Id)
@@ -77,7 +79,11 @@ namespace Server.Controllers
                 }
             }
 
-            return NoContent();
+            // Retrieve the updated property
+            var updatedProperty = await _context.Properties.FindAsync(id);
+
+            // Return the updated property
+            return Ok(updatedProperty);
         }
 
         // DELETE: api/Property/{id}
