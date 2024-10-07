@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import { useAtom } from 'jotai';
 import {Product, productsAtom, propertiesAtom, Property} from '../../../atoms/productAtoms.ts';
 import axios from "axios";
+import {FaCheck} from "react-icons/fa";
 
 
 const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -61,6 +62,15 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         e.stopPropagation(); //Makes sure that it only closes on background clicks
     };
 
+    // --- TOGGLES ---
+    const togglePropertySelection = (propertyId: number) => {
+        setSelectedProperties((prevSelected) =>
+            prevSelected.includes(propertyId)
+                ? prevSelected.filter((id) => id !== propertyId)
+                : [...prevSelected, propertyId]
+        );
+    };
+
     //----STYLING----
     return (
         <div className="modal modal-open" onClick={onClose}>
@@ -110,9 +120,35 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         />
                     </div>
 
+                    {/* Property Selection */}
+                    <div className="form-control mb-4">
+                        <label className="label">
+                            <span className="label-text font-bold">Select Properties</span>
+                        </label>
+                        <div className="border rounded overflow-hidden">
+                            <ul className="divide-y max-h-36 overflow-y-auto">
+                                {properties.map((property) => {
+                                    const isSelected = selectedProperties.includes(property.id);
+                                    return (
+                                        <li
+                                            key={property.id}
+                                            className={`flex items-center justify-between px-4 py-2 cursor-pointer 
+                                                        ${isSelected ? 'bg-blue-100' : 'bg-white'}
+                                                        hover:bg-blue-50`}
+                                            onClick={() => togglePropertySelection(property.id)}
+                                        >
+                                            <span>{property.propertyName}</span>
+                                            {isSelected && <FaCheck className="text-blue-500" />}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    </div>
+
                     {/* Discontinued Toggle */}
                     <div className="form-control">
-                        <label className="label cursor-pointer">
+                        <label className="label cursor-pointer font-bold">
                             <span className="label-text">Discontinued</span>
                             <input
                                 type="checkbox"
@@ -121,33 +157,6 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                 onChange={(e) => setDiscontinued(e.target.checked)}
                             />
                         </label>
-                    </div>
-
-                    {/* Property Selection */}
-                    <div className="form-control">
-                        <label className="label">
-                            <span className="label-text">Select Properties</span>
-                        </label>
-                        <div className="grid grid-cols-2 gap-2">
-                            {properties.map((property) => (
-                                <label key={property.id} className="cursor-pointer flex items-center space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        value={property.id}
-                                        checked={selectedProperties.includes(property.id)}
-                                        onChange={(e) => {
-                                            const propertyId = parseInt(e.target.value);
-                                            setSelectedProperties((prevSelected) =>
-                                                prevSelected.includes(propertyId)
-                                                    ? prevSelected.filter((id) => id !== propertyId)
-                                                    : [...prevSelected, propertyId]
-                                            );
-                                        }}
-                                    />
-                                    <span>{property.propertyName}</span>
-                                </label>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Action Buttons */}
@@ -164,5 +173,6 @@ const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </div>
     );
 };
+
 
 export default AddProductForm;
