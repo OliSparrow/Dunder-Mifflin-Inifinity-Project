@@ -57,7 +57,7 @@ const SortFilterPanel: React.FC = () => {
                     <option value="Discontinued">Discontinued</option>
                 </select>
             </div>
-
+            
             {/* Toggle for Showing Discontinued */}
             <div className="mb-4">
                 <label className="flex items-center space-x-2">

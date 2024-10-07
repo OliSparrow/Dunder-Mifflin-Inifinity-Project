@@ -3,10 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { productsAtom } from "../../atoms/productAtoms.ts";
 import { FiShoppingCart, FiArrowLeft } from "react-icons/fi";
+import {cartAtom} from "../../atoms/cartAtom.ts";
 
 const ProductDetail: React.FC = () => {
     //---- ATOMS -----
     const [products] = useAtom(productsAtom);
+    const [cart, setCart] = useAtom(cartAtom);
 
     //---- FIND PRODUCT BY ID -----
     const { id } = useParams<{ id: string }>();
@@ -30,7 +32,18 @@ const ProductDetail: React.FC = () => {
     };
 
     const handleAddToCart = () => {
-        //Placeholder for adding to cart
+        setCart((prevCart) => {
+            const existingItem = prevCart.find(item => item.product.id === product.id);
+            if (existingItem) {
+                return prevCart.map(item =>
+                    item.product.id === product.id
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
+                );
+            } else {
+                return [...prevCart, { product, quantity }];
+            }
+        });
         alert(`Added ${quantity} of ${product.name} to the cart`);
     };
 
@@ -84,10 +97,11 @@ const ProductDetail: React.FC = () => {
                     </button>
                 </div>
             </div>
+            
             {/* Back to Product List Button */}
             <div className="mt-6">
                 <button className="btn btn-outline" onClick={handleBackToList}>
-                    <FiArrowLeft />
+                    <FiArrowLeft/>
                     Back
                 </button>
             </div>

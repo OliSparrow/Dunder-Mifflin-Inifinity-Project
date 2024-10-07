@@ -53,7 +53,7 @@ const TopPane: React.FC = () => {
                 )}
                
                 {/* Cart Button */}
-                <Link to="/order-history" className="btn btn-primary btn-circle">
+                <Link to="/cart" className="btn btn-primary btn-circle">
                     <FaShoppingCart size={20} />
                 </Link>
             </div>
