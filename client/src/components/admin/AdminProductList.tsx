@@ -1,28 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import {
-    filterOptionAtom,
-    productsAtom,
-    sortOptionAtom,
-    Product,
-} from '../../atoms/productAtoms';
-import { FaTrash, FaCheck, FaEdit } from 'react-icons/fa';
+import { productsAtom, Product } from '../../atoms/productAtoms';
+import { FaTrash, FaCheck, FaEdit, FaFilter } from 'react-icons/fa';
 import AddProductForm from './CRUD/AddProductForm';
 import EditProductForm from './CRUD/EditProductForm';
 import axios from 'axios';
-import AdminSortFilterPanel from './AdminSortFilterPanel';
 
 const AdminProductList: React.FC = () => {
     // ---- ATOMS ----
     const [products, setProducts] = useAtom(productsAtom);
-    const [filterOption] = useAtom(filterOptionAtom);
-    const [sortOption] = useAtom(sortOptionAtom);
 
     // ---- USE STATES ----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
     const [deleteMode, setDeleteMode] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+    const [filterModalOpen, setFilterModalOpen] = useState(false);
+    const [filterOptions, setFilterOptions] = useState({
+        stockFilter: '', // '', 'In Stock', 'Out of Stock', 'Low Stock'
+        discontinued: false,
+        sortOption: '', // '', 'price-low-high', 'price-high-low'
+    });
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -37,30 +35,40 @@ const AdminProductList: React.FC = () => {
         fetchProducts();
     }, [setProducts]);
 
+    // ---- Determine if Filters Are Active ----
+    const areFiltersActive = () => {
+        return (
+            filterOptions.stockFilter !== '' ||
+            filterOptions.discontinued !== false ||
+            filterOptions.sortOption !== ''
+        );
+    };
+
     // ---- FILTER AND SORT ----
     const filteredProducts = products.filter((product) => {
         let matchesFilter = true;
 
         // Filter by stock levels
-        if (filterOption === 'In Stock') {
+        if (filterOptions.stockFilter === 'In Stock') {
             matchesFilter = product.stock > 0;
-        } else if (filterOption === 'Out of Stock') {
+        } else if (filterOptions.stockFilter === 'Out of Stock') {
             matchesFilter = product.stock === 0;
-        } else if (filterOption === 'Low Stock') {
+        } else if (filterOptions.stockFilter === 'Low Stock') {
             matchesFilter = product.stock > 0 && product.stock < 5;
         }
 
         // Filter discontinued products
-        if (filterOption === 'Discontinued') {
-            matchesFilter = product.discontinued;
+        if (filterOptions.discontinued) {
+            matchesFilter = matchesFilter && product.discontinued;
         }
 
         return matchesFilter;
     });
 
-    const sortedProducts = filteredProducts.sort((a, b) => {
-        if (sortOption === 'price-low-high') return a.price - b.price;
-        if (sortOption === 'price-high-low') return b.price - a.price;
+    // Apply sorting based on sortOption
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
+        if (filterOptions.sortOption === 'price-low-high') return a.price - b.price;
+        if (filterOptions.sortOption === 'price-high-low') return b.price - a.price;
         return 0; // No sorting applied
     });
 
@@ -120,25 +128,97 @@ const AdminProductList: React.FC = () => {
     const handleDeleteButtonClick = () => {
         if (deleteMode) {
             if (selectedProducts.length > 0) {
-                //Delete selected products
+                // Proceed to delete selected products
                 handleDeleteSelected();
             } else {
-                //Exit delete mode
+                // Exit delete mode
                 setDeleteMode(false);
                 setSelectedProducts([]);
             }
         } else {
-            //Enter delete mode
+            // Enter delete mode
             setDeleteMode(true);
         }
     };
 
+    // ---- Filter Modal Component ----
+    const FilterModal = () => (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white p-6 rounded shadow-md w-80">
+                <h2 className="text-xl font-bold mb-4">Filter Options</h2>
+                {/* Stock Level Filter */}
+                <div className="mb-4">
+                    <label className="block font-semibold mb-2">Stock Level:</label>
+                    <select
+                        className="select select-bordered w-full"
+                        value={filterOptions.stockFilter}
+                        onChange={(e) =>
+                            setFilterOptions({ ...filterOptions, stockFilter: e.target.value })
+                        }
+                    >
+                        <option value="">All</option>
+                        <option value="In Stock">In Stock</option>
+                        <option value="Out of Stock">Out of Stock</option>
+                        <option value="Low Stock">Low Stock</option>
+                    </select>
+                </div>
+                {/* Discontinued Filter */}
+                <div className="mb-4">
+                    <label className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            className="checkbox"
+                            checked={filterOptions.discontinued}
+                            onChange={(e) =>
+                                setFilterOptions({
+                                    ...filterOptions,
+                                    discontinued: e.target.checked,
+                                })
+                            }
+                        />
+                        <span className="font-semibold">Show Discontinued Only</span>
+                    </label>
+                </div>
+                {/* Sort by Price */}
+                <div className="mb-4">
+                    <label className="block font-semibold mb-2">Sort by Price:</label>
+                    <select
+                        className="select select-bordered w-full"
+                        value={filterOptions.sortOption}
+                        onChange={(e) =>
+                            setFilterOptions({ ...filterOptions, sortOption: e.target.value })
+                        }
+                    >
+                        <option value="">No Sorting</option>
+                        <option value="price-low-high">Low to High</option>
+                        <option value="price-high-low">High to Low</option>
+                    </select>
+                </div>
+                {/* Buttons */}
+                <div className="flex justify-end space-x-2">
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => setFilterModalOpen(false)}
+                    >
+                        Close
+                    </button>
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => setFilterModalOpen(false)}
+                    >
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+
     // ---- STYLING ----
     return (
         <div className="w-full p-4">
-            {/* Action Buttons and Sort/Filter Panel */}
-            <div className="flex flex-wrap items-center justify-between mb-4">
-                {/* Action Buttons */}
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between mb-4">
+                {/* Left Side Buttons */}
                 <div className="flex items-center gap-2">
                     <button className="btn btn-primary" onClick={handleAddProductClick}>
                         Add Product
@@ -156,9 +236,30 @@ const AdminProductList: React.FC = () => {
                     </button>
                 </div>
 
-                {/* Sort and Filter Panel */}
-                <div className="w-full sm:w-auto mt-4 sm:mt-0">
-                    <AdminSortFilterPanel />
+                {/* Right Side Buttons */}
+                <div className="flex items-center gap-2">
+                    {areFiltersActive() && (
+                        <button
+                            className="btn btn-outline"
+                            onClick={() =>
+                                setFilterOptions({
+                                    stockFilter: '',
+                                    discontinued: false,
+                                    sortOption: '',
+                                })
+                            }
+                        >
+                            Clear Filters
+                        </button>
+                    )}
+
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => setFilterModalOpen(true)}
+                    >
+                        <FaFilter className="mr-2" />
+                        Filter
+                    </button>
                 </div>
             </div>
 
@@ -248,6 +349,9 @@ const AdminProductList: React.FC = () => {
                     onClose={() => setEditingProduct(null)}
                 />
             )}
+
+            {/* Render Filter Modal */}
+            {filterModalOpen && <FilterModal />}
         </div>
     );
 };
