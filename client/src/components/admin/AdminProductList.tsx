@@ -35,13 +35,9 @@ const AdminProductList: React.FC = () => {
         fetchProducts();
     }, [setProducts]);
 
-    // ---- Determine if Filters Are Active ----
+    // Determine if filters are active
     const areFiltersActive = () => {
-        return (
-            filterOptions.stockFilter !== '' ||
-            filterOptions.discontinued !== false ||
-            filterOptions.sortOption !== ''
-        );
+        return (filterOptions.stockFilter !== '' || filterOptions.discontinued || filterOptions.sortOption !== '');
     };
 
     // ---- FILTER AND SORT ----
@@ -220,12 +216,14 @@ const AdminProductList: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
                 {/* Left Side Buttons */}
                 <div className="flex items-center gap-2">
-                    <button className="btn btn-primary" onClick={handleAddProductClick}>
-                        Add Product
-                    </button>
+                    {!deleteMode && (
+                        <button className="btn btn-primary" onClick={handleAddProductClick}>
+                            Add Product
+                        </button>
+                    )}
 
                     <button
-                        className={`btn ${deleteMode ? 'btn-warning' : 'btn-error'}`}
+                        className={`btn ${deleteMode ? 'btn-error' : 'btn-error'}`}
                         onClick={handleDeleteButtonClick}
                     >
                         {deleteMode
@@ -234,6 +232,18 @@ const AdminProductList: React.FC = () => {
                                 : 'Exit Delete Mode'
                             : 'Delete Multiple'}
                     </button>
+
+                    {deleteMode && (
+                        <button
+                            className="btn btn-outline"
+                            disabled={selectedProducts.length === 0}
+                            onClick={() => setSelectedProducts([])}
+                        >
+                            {selectedProducts.length > 0
+                                ? `Clear Selections (${selectedProducts.length})`
+                                : 'Clear Selections'}
+                        </button>
+                    )}
                 </div>
 
                 {/* Right Side Buttons */}
