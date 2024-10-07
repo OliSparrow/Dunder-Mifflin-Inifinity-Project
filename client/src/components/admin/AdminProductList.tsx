@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import {
     filterOptionAtom,
@@ -36,7 +36,7 @@ const AdminProductList: React.FC = () => {
 
         fetchProducts();
     }, [setProducts]);
-    
+
     // ---- FILTER AND SORT ----
     const filteredProducts = products.filter((product) => {
         let matchesFilter = true;
@@ -82,28 +82,24 @@ const AdminProductList: React.FC = () => {
     };
 
     const handleDeleteSelected = async () => {
-        if (selectedProducts.length > 0) {
-            const confirmed = window.confirm(
-                'Are you sure you want to delete the selected products?'
-            );
-            if (confirmed) {
-                try {
-                    await Promise.all(
-                        selectedProducts.map((id) =>
-                            axios.delete(`http://localhost:5000/api/paper/${id}`)
-                        )
-                    );
-                    setProducts(
-                        products.filter((product) => !selectedProducts.includes(product.id))
-                    );
-                    setSelectedProducts([]);
-                    setDeleteMode(false);
-                } catch (error) {
-                    console.error('Error deleting products:', error);
-                }
+        const confirmed = window.confirm(
+            'Are you sure you want to delete the selected products?'
+        );
+        if (confirmed) {
+            try {
+                await Promise.all(
+                    selectedProducts.map((id) =>
+                        axios.delete(`http://localhost:5000/api/Paper/${id}`)
+                    )
+                );
+                setProducts(
+                    products.filter((product) => !selectedProducts.includes(product.id))
+                );
+                setSelectedProducts([]);
+                setDeleteMode(false);
+            } catch (error) {
+                console.error('Error deleting products:', error);
             }
-        } else {
-            alert('No products selected.');
         }
     };
 
@@ -113,7 +109,7 @@ const AdminProductList: React.FC = () => {
         );
         if (confirmed) {
             try {
-                await axios.delete(`http://localhost:5000/api/paper/${id}`);
+                await axios.delete(`http://localhost:5000/api/Paper/${id}`);
                 setProducts(products.filter((product) => product.id !== id));
             } catch (error) {
                 console.error('Error deleting product:', error);
@@ -121,13 +117,20 @@ const AdminProductList: React.FC = () => {
         }
     };
 
-    const toggleDeleteMode = () => {
-        if (deleteMode && selectedProducts.length === 0) {
-            setDeleteMode(false);
+    const handleDeleteButtonClick = () => {
+        if (deleteMode) {
+            if (selectedProducts.length > 0) {
+                //Delete selected products
+                handleDeleteSelected();
+            } else {
+                //Exit delete mode
+                setDeleteMode(false);
+                setSelectedProducts([]);
+            }
         } else {
-            setDeleteMode(!deleteMode);
+            //Enter delete mode
+            setDeleteMode(true);
         }
-        setSelectedProducts([]);
     };
 
     // ---- STYLING ----
@@ -143,9 +146,13 @@ const AdminProductList: React.FC = () => {
 
                     <button
                         className={`btn ${deleteMode ? 'btn-warning' : 'btn-error'}`}
-                        onClick={deleteMode ? handleDeleteSelected : toggleDeleteMode}
+                        onClick={handleDeleteButtonClick}
                     >
-                        {deleteMode ? 'Delete Selected' : 'Delete Multiple'}
+                        {deleteMode
+                            ? selectedProducts.length > 0
+                                ? `Delete Selected (${selectedProducts.length})`
+                                : 'Exit Delete Mode'
+                            : 'Delete Multiple'}
                     </button>
                 </div>
 
