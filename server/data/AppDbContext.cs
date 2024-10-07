@@ -1,4 +1,4 @@
-// Data/AppDbContext.cs
+// AppDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using Server.Models;
 
@@ -26,19 +26,25 @@ namespace Server.Data
             modelBuilder.Entity<Order>().ToTable("orders");
             modelBuilder.Entity<OrderEntry>().ToTable("order_entries");
 
+            //Configure composite key for PaperProperty
             modelBuilder.Entity<PaperProperty>()
                 .HasKey(pp => new { pp.PaperId, pp.PropertyId });
 
+            //Configure Paper to PaperProperty relationship with cascade delete
             modelBuilder.Entity<PaperProperty>()
                 .HasOne(pp => pp.Paper)
                 .WithMany(p => p.PaperProperties)
-                .HasForeignKey(pp => pp.PaperId);
+                .HasForeignKey(pp => pp.PaperId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            //Configure Property to PaperProperty relationship with restrict delete
             modelBuilder.Entity<PaperProperty>()
                 .HasOne(pp => pp.Property)
                 .WithMany(p => p.PaperProperties)
-                .HasForeignKey(pp => pp.PropertyId);
+                .HasForeignKey(pp => pp.PropertyId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            //Configure OrderEntry relationships
             modelBuilder.Entity<OrderEntry>()
                 .HasOne(oe => oe.Order)
                 .WithMany(o => o.OrderEntries)
@@ -49,6 +55,7 @@ namespace Server.Data
                 .WithMany()
                 .HasForeignKey(oe => oe.ProductId);
 
+            //Configure Order to Customer relationship
             modelBuilder.Entity<Order>()
                 .HasOne(o => o.Customer)
                 .WithMany(c => c.Orders)

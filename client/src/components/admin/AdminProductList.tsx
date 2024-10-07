@@ -102,8 +102,9 @@ const AdminProductList: React.FC = () => {
                 );
                 setSelectedProducts([]);
                 setDeleteMode(false);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error deleting products:', error);
+                alert('Failed to delete the selected products. Please try again.');
             }
         }
     };
@@ -116,11 +117,13 @@ const AdminProductList: React.FC = () => {
             try {
                 await axios.delete(`http://localhost:5000/api/Paper/${id}`);
                 setProducts(products.filter((product) => product.id !== id));
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error deleting product:', error);
+                alert('Failed to delete the product. Please try again.');
             }
         }
     };
+
 
     const handleDeleteButtonClick = () => {
         if (deleteMode) {

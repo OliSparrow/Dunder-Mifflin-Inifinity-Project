@@ -170,7 +170,10 @@ namespace Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePaper(int id)
         {
-            var paper = await _context.Papers.FindAsync(id);
+            var paper = await _context.Papers
+                .Include(p => p.PaperProperties)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (paper == null)
             {
                 return NotFound();
@@ -181,6 +184,8 @@ namespace Server.Controllers
 
             return NoContent();
         }
+
+
 
         private bool PaperExists(int id)
         {
