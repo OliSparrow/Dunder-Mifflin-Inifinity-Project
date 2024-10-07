@@ -1,7 +1,7 @@
 import React from "react";
 import { useAtom } from "jotai";
 import { cartAtom } from "../../atoms/cartAtom";
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 
 const Cart: React.FC = () => {
