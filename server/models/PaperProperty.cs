@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Server.Models
 {
@@ -11,7 +12,9 @@ namespace Server.Models
         [Column("property_id")]
         public int PropertyId { get; set; }
 
+        [JsonIgnore]
         public Paper? Paper { get; set; }
+        
         public Property? Property { get; set; }
     }
 }

@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Server.Models
 {
     public class PaperRequest
     {
-        public Paper? Paper { get; set; }
+        [Required]
+        public Paper Paper { get; set; }
+
         public List<int>? PropertyIds { get; set; }
     }
 }

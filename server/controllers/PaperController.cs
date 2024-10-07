@@ -5,6 +5,7 @@ using Server.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace Server.Controllers
 {
@@ -25,7 +26,7 @@ namespace Server.Controllers
         {
             return await _context.Papers
                 .Include(p => p.PaperProperties)
-                .ThenInclude(pp => pp.Property)
+                    .ThenInclude(pp => pp.Property)
                 .ToListAsync();
         }
 
@@ -35,7 +36,7 @@ namespace Server.Controllers
         {
             var paper = await _context.Papers
                 .Include(p => p.PaperProperties)
-                .ThenInclude(pp => pp.Property)
+                    .ThenInclude(pp => pp.Property)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (paper == null)
@@ -50,6 +51,11 @@ namespace Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Paper>> AddPaper([FromBody] PaperRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var paper = request.Paper;
             var propertyIds = request.PropertyIds;
 
@@ -57,22 +63,22 @@ namespace Server.Controllers
             _context.Papers.Add(paper);
             await _context.SaveChangesAsync();
 
-            // Assign selected properties to the paper
-            foreach (var propertyId in propertyIds)
+            // Assign selected properties to the paper, if any
+            if (propertyIds != null && propertyIds.Any())
             {
-                var property = await _context.Properties.FindAsync(propertyId);
-                if (property != null)
+                foreach (var propertyId in propertyIds)
                 {
                     var paperProperty = new PaperProperty
                     {
                         PaperId = paper.Id,
-                        PropertyId = property.Id
+                        PropertyId = propertyId
                     };
                     _context.PaperProperties.Add(paperProperty);
                 }
+
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetPaper), new { id = paper.Id }, paper);
         }
 
@@ -80,12 +86,17 @@ namespace Server.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> EditPaper(int id, [FromBody] PaperRequest request)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var paper = request.Paper;
             var propertyIds = request.PropertyIds;
 
             if (id != paper.Id)
             {
-                return BadRequest();
+                return BadRequest("Paper ID mismatch.");
             }
 
             _context.Entry(paper).State = EntityState.Modified;
@@ -95,21 +106,23 @@ namespace Server.Controllers
                 .Include(p => p.PaperProperties)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (existingPaper == null) return NotFound();
+            if (existingPaper == null)
+            {
+                return NotFound();
+            }
 
             // Remove old properties
             _context.PaperProperties.RemoveRange(existingPaper.PaperProperties);
 
-            // Assign new properties
-            foreach (var propertyId in propertyIds)
+            // Assign new properties, if any
+            if (propertyIds != null && propertyIds.Any())
             {
-                var property = await _context.Properties.FindAsync(propertyId);
-                if (property != null)
+                foreach (var propertyId in propertyIds)
                 {
                     var paperProperty = new PaperProperty
                     {
                         PaperId = paper.Id,
-                        PropertyId = property.Id
+                        PropertyId = propertyId
                     };
                     _context.PaperProperties.Add(paperProperty);
                 }
