@@ -6,7 +6,7 @@ import {
     productsAtom,
     sortOptionAtom,
     searchQueryAtom,
-    Product
+    Product, showDiscontinuedAtom
 } from "../../atoms/productAtoms.ts";
 import {Link} from "react-router-dom";
 import axios from 'axios';
@@ -23,6 +23,7 @@ const ProductList: React.FC = () => {
     const [filterOption] = useAtom(filterOptionAtom);
     const [sortOption] = useAtom(sortOptionAtom);
     const [searchQuery] = useAtom(searchQueryAtom);
+    const [showDiscontinued] = useAtom(showDiscontinuedAtom);
     
     // ----FETCHING FROM API ----
     useEffect(() => {
@@ -49,9 +50,9 @@ const ProductList: React.FC = () => {
             matchesFilter = product.stock > 0 && product.stock < 5;
         }
 
-        //Filter out discontinued products if needed
-        if (filterOption === 'Discontinued') {
-            matchesFilter = product.discontinued;
+        // Filter out discontinued products if not showing discontinued
+        if (!showDiscontinued && product.discontinued) {
+            matchesFilter = false;
         }
 
         //Filter by search query

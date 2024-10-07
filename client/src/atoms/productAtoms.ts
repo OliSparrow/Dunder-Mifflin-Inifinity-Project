@@ -38,3 +38,6 @@ export const productsAtom = atom<Product[]>([]);
 
 //Atom for managing search queries
 export const searchQueryAtom = atom('');
+
+//Atom to track toggle state
+export const showDiscontinuedAtom = atom(false);

@@ -1,11 +1,12 @@
 import React from 'react';
 import { useAtom } from 'jotai';
-import { sortOptionAtom, filterOptionAtom } from '../../atoms/productAtoms.ts';
+import {sortOptionAtom, filterOptionAtom, showDiscontinuedAtom} from '../../atoms/productAtoms.ts';
 
 const SortFilterPanel: React.FC = () => {
     //----ATOMS----
     const [sortOption, setSortOption] = useAtom(sortOptionAtom);
     const [filterOption, setFilterOption] = useAtom(filterOptionAtom);
+    const [showDiscontinued, setShowDiscontinued] = useAtom(showDiscontinuedAtom);
 
     //----HANDLERS----
     const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -14,6 +15,10 @@ const SortFilterPanel: React.FC = () => {
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         setFilterOption(e.target.value);
+    };
+
+    const handleDiscontinuedToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setShowDiscontinued(e.target.checked);
     };
 
     //----STYLING----
@@ -51,6 +56,19 @@ const SortFilterPanel: React.FC = () => {
                     <option value="Low Stock">Low Stock</option>
                     <option value="Discontinued">Discontinued</option>
                 </select>
+            </div>
+
+            {/* Toggle for Showing Discontinued */}
+            <div className="mb-4">
+                <label className="flex items-center space-x-2">
+                    <input
+                        type="checkbox"
+                        checked={showDiscontinued}
+                        onChange={handleDiscontinuedToggle}
+                        className="checkbox"
+                    />
+                    <span className="font-bold">Show Discontinued</span>
+                </label>
             </div>
         </div>
     );
