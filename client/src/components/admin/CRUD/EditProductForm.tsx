@@ -90,7 +90,7 @@ const EditProductForm: React.FC<{ product: Product; onClose: () => void }> = ({ 
                     {/* Product Name */}
                     <div className="form-control">
                         <label className="label font-bold">
-                            <span className="label-text">Product Name</span>
+                            <span className="label-text font-bold">Product Name</span>
                         </label>
                         <input
                             type="text"
@@ -175,7 +175,7 @@ const EditProductForm: React.FC<{ product: Product; onClose: () => void }> = ({ 
                             Cancel
                         </button>
                         <button type="submit" className="btn btn-primary">
-                            Add Product
+                            Update
                         </button>
                     </div>
                 </form>
