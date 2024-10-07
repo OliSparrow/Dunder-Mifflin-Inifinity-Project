@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
 import { propertiesAtom, Property } from '../../atoms/productAtoms';
 import AddPropertyForm from './CRUD/AddPropertyForm';
+import EditPropertyForm from './CRUD/EditPropertyForm';
 import axios from 'axios';
 import { FaTrash, FaEdit, FaCheck } from 'react-icons/fa';
 
@@ -19,9 +20,7 @@ const AdminPropertyList: React.FC = () => {
     useEffect(() => {
         const fetchProperties = async () => {
             try {
-                const response = await axios.get<Property[]>(
-                    'http://localhost:5000/api/property'
-                );
+                const response = await axios.get<Property[]>('http://localhost:5000/api/property');
                 setProperties(response.data);
             } catch (error) {
                 console.error('Error fetching properties:', error);
@@ -85,38 +84,68 @@ const AdminPropertyList: React.FC = () => {
     const handleDeleteButtonClick = () => {
         if (deleteMode) {
             if (selectedProperties.length > 0) {
-                // Proceed to delete selected properties
+                //Proceed to delete selected properties
                 handleDeleteSelectedProperties();
             } else {
-                // Exit delete mode
+                //Exit delete mode
                 setDeleteMode(false);
                 setSelectedProperties([]);
             }
         } else {
-            // Enter delete mode
+            //Enter delete mode
             setDeleteMode(true);
         }
+    };
+
+    const handleClearSelections = () => {
+        setSelectedProperties([]);
+    };
+
+    const handleUpdateProperty = (updatedProperty: Partial<Property> & { id: number }) => {
+        console.log('Updating property in state:', updatedProperty);
+        setProperties((prevProperties) =>
+            prevProperties.map((property) =>
+                property.id === updatedProperty.id ? { ...property, ...updatedProperty } : property
+            )
+        );
     };
 
     //---- STYLING -----
     return (
         <div className="w-full p-4">
             {/* Action Buttons */}
-            <div className="flex items-center gap-2 mb-4">
-                <button className="btn btn-primary" onClick={handleAddPropertyClick}>
-                    Add Property
-                </button>
+            <div className="flex items-center justify-between mb-4">
+                {/* Left Side Buttons */}
+                <div className="flex items-center gap-2">
+                    {!deleteMode && (
+                        <button className="btn btn-primary" onClick={handleAddPropertyClick}>
+                            Add Property
+                        </button>
+                    )}
 
-                <button
-                    className={`btn ${deleteMode ? 'btn-warning' : 'btn-error'}`}
-                    onClick={handleDeleteButtonClick}
-                >
-                    {deleteMode
-                        ? selectedProperties.length > 0
-                            ? `Delete Selected (${selectedProperties.length})`
-                            : 'Exit Delete Mode'
-                        : 'Delete Multiple'}
-                </button>
+                    <button
+                        className={`btn ${deleteMode ? 'btn-error' : 'btn-warning'}`}
+                        onClick={handleDeleteButtonClick}
+                    >
+                        {deleteMode
+                            ? selectedProperties.length > 0
+                                ? `Delete Selected (${selectedProperties.length})`
+                                : 'Exit Delete Mode'
+                            : 'Delete Multiple'}
+                    </button>
+
+                    {deleteMode && (
+                        <button
+                            className="btn btn-outline"
+                            disabled={selectedProperties.length === 0}
+                            onClick={handleClearSelections}
+                        >
+                            {selectedProperties.length > 0
+                                ? `Clear Selections (${selectedProperties.length})`
+                                : 'Clear Selections'}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Property Table */}
@@ -155,7 +184,7 @@ const AdminPropertyList: React.FC = () => {
                                     <FaTrash
                                         className="cursor-pointer text-red-600"
                                         onClick={(e) => {
-                                            e.stopPropagation(); // Prevents triggering row click
+                                            e.stopPropagation();
                                             handleDeleteProperty(property.id);
                                         }}
                                     />
@@ -168,7 +197,7 @@ const AdminPropertyList: React.FC = () => {
                                 <FaEdit
                                     className="cursor-pointer text-blue-600"
                                     onClick={(e) => {
-                                        e.stopPropagation(); // Prevents triggering row click
+                                        e.stopPropagation();
                                         handleEditPropertyClick(property);
                                     }}
                                 />
@@ -182,9 +211,10 @@ const AdminPropertyList: React.FC = () => {
             {showAddForm && <AddPropertyForm onClose={() => setShowAddForm(false)} />}
 
             {editingProperty && (
-                <AddPropertyForm
+                <EditPropertyForm
                     property={editingProperty}
                     onClose={() => setEditingProperty(null)}
+                    onUpdate={handleUpdateProperty}
                 />
             )}
         </div>
