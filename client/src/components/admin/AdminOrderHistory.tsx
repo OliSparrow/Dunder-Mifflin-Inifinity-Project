@@ -119,6 +119,13 @@ const AdminOrderHistory: React.FC = () => {
         }
     };
 
+    // Helper to calculate delivery date
+    const calculateDeliveryDate = (orderDate: string): string => {
+        const orderDateObj = new Date(orderDate);
+        orderDateObj.setDate(orderDateObj.getDate() + 10);
+        return orderDateObj.toISOString().split('T')[0]; 
+    };
+
     // --- STYLING & RENDERING ---
     return (
         <div className="w-full p-4">
@@ -163,9 +170,11 @@ const AdminOrderHistory: React.FC = () => {
                             <thead>
                             <tr>
                                 <th>{deleteMode ? 'Select' : 'Delete'}</th>
+                                <th>Order Date</th>
                                 <th>Customer Name</th>
-                                <th>Total Amount</th>
                                 <th>Status</th>
+                                <th>Delivery Date</th>
+                                <th>Total Amount</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -202,13 +211,19 @@ const AdminOrderHistory: React.FC = () => {
                                         )}
                                     </td>
                                     <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4">
-                                        {order.customerName}
+                                        {new Date(order.orderDate).toISOString().split('T')[0]}
                                     </td>
-                                    <td className="text-sm md:text-base p-2 md:p-4">
-                                        {order.totalAmount}$
+                                    <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4">
+                                        {order.customer?.name}
                                     </td>
                                     <td className="text-sm md:text-base p-2 md:p-4">
                                         {order.status}
+                                    </td>
+                                    <td className="text-sm md:text-base p-2 md:p-4">
+                                        {calculateDeliveryDate(order.orderDate)}
+                                    </td>
+                                    <td className="text-sm md:text-base p-2 md:p-4">
+                                        {order.totalAmount}$
                                     </td>
                                     <td className="p-2 md:p-4">
                                         <FaEdit
@@ -241,7 +256,7 @@ const AdminOrderHistory: React.FC = () => {
                                 </label>
                                 <input
                                     type="text"
-                                    value={editingOrder.customerName}
+                                    value={editingOrder.customer?.name}
                                     className="input input-bordered"
                                     readOnly
                                 />

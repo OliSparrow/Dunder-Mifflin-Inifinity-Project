@@ -86,6 +86,7 @@ namespace Server.Controllers
                 order.CustomerId = customer.Id;
                 order.Customer = customer;
 
+                // Prepare valid order entries list and calculate total amount
                 var validOrderEntries = new List<OrderEntry>();
                 double totalAmount = 0;
 
@@ -105,6 +106,7 @@ namespace Server.Controllers
                         return BadRequest($"Not enough stock for product {product.Name}");
                     }
 
+                    // Update stock and calculate total amount
                     product.Stock -= entry.Quantity;
                     totalAmount += entry.Quantity * product.Price;
 
@@ -112,26 +114,39 @@ namespace Server.Controllers
                     {
                         ProductId = entry.ProductId,
                         Quantity = entry.Quantity,
-                        Product = product
+                        Product = product,
+                        OrderId = order.Id 
                     });
                 }
 
+                // Set order properties
                 order.OrderEntries = validOrderEntries;
                 order.TotalAmount = totalAmount;
-                order.OrderDate = DateTime.UtcNow; 
+                order.OrderDate = DateTime.UtcNow;
 
                 if (string.IsNullOrEmpty(order.Status))
                 {
                     order.Status = "Pending";
                 }
 
+                // Add the order to the context
                 _context.Orders.Add(order);
                 await _context.SaveChangesAsync();
+
+                // Update the OrderId for each OrderEntry after the order is saved and has an ID
+                foreach (var orderEntry in validOrderEntries)
+                {
+                    orderEntry.OrderId = order.Id; 
+                }
+
+                _context.OrderEntries.AddRange(validOrderEntries); 
+                await _context.SaveChangesAsync();
+
                 await transaction.CommitAsync();
 
                 return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
                 Console.WriteLine($"Error in PlaceOrder: {ex.Message} - {ex.StackTrace}");

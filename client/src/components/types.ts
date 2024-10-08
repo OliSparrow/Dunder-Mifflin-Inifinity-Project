@@ -35,9 +35,17 @@ export interface EditPropertyFormProps {
     onUpdate: (updatedProperty: Partial<Property> & { id: number }) => void;
 }
 
-export interface Order {
+export type Order = {
     id: number;
-    customerName: string;
-    totalAmount: number;
+    orderDate: string;
+    deliveryDate?: string;
     status: string;
+    totalAmount: number;
+    customer: {
+        id: number;
+        name: string;
+        address: string;
+        phone: string;
+        email: string;
+    };
 }

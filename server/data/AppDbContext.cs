@@ -48,7 +48,7 @@ namespace Server.Data
                 .HasOne(oe => oe.Order)
                 .WithMany(o => o.OrderEntries)
                 .HasForeignKey(oe => oe.OrderId)
-                .OnDelete(DeleteBehavior.Cascade); // Enables cascade delete
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<OrderEntry>()
                 .HasOne(oe => oe.Product)
