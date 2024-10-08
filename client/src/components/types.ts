@@ -34,3 +34,10 @@ export interface EditPropertyFormProps {
     onClose: () => void;
     onUpdate: (updatedProperty: Partial<Property> & { id: number }) => void;
 }
+
+export interface Order {
+    id: number;
+    customerName: string;
+    totalAmount: number;
+    status: string;
+}

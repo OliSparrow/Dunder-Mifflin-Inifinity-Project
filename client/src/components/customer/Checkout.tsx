@@ -5,10 +5,10 @@ import { useNavigate } from 'react-router-dom';
 
 const Checkout: React.FC = () => {
     //--- ATOMS ----
-    const [cart] = useAtom(cartAtom); 
-    
-    // ---- USE STATES ----
+    const [cart, setCart] = useAtom(cartAtom);
     const navigate = useNavigate();
+
+    // Customer state
     const [customer, setCustomer] = useState({
         name: '',
         address: '',
@@ -16,25 +16,55 @@ const Checkout: React.FC = () => {
         email: ''
     });
 
-    // --- HANDLERS ----
+    // --- HANDLERS ---
     const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCustomer({ ...customer, [e.target.name]: e.target.value });
     };
 
-    const handlePlaceOrder = () => {
-        // Placeholder: Process the order
-        alert('Order placed successfully!');
-        navigate('/');
+    const handlePlaceOrder = async () => {
+        const order = {
+            customer: customer, // Customer details
+            orderEntries: cart.map(item => ({
+                productId: item.product.id, // Correct product ID
+                quantity: item.quantity,    // Quantity of each product
+            })),
+            status: "Pending",  // Add the required status field
+            orderDate: new Date().toISOString(), // Send current date
+            totalAmount: cart.reduce((total, item) => total + item.product.price * item.quantity, 0), // Calculate total price
+        };
+
+        try {
+            const response = await fetch('http://localhost:5000/api/order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(order)
+            });
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Order error:', error);
+                alert(`Error placing order: ${error.title}`);
+            } else {
+                alert('Order placed successfully!');
+                setCart([]); // Clear cart after successful order
+                navigate('/'); // Navigate to the home page
+            }
+
+        } catch (error) {
+            console.error('Error placing order:', error);
+            alert('Error placing order. Please try again later.');
+        }
     };
+
 
     // ---- STYLING ----
     return (
         <div className="p-4 bg-base-100 min-h-screen">
             <h1 className="text-2xl font-bold mb-4">Checkout</h1>
 
-            {/* Grid Layout for the form and the cart */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Left Side: Customer Details Form */}
+                {/* Customer Details Form */}
                 <div>
                     <form>
                         <div className="mb-4">
@@ -88,7 +118,7 @@ const Checkout: React.FC = () => {
                     </form>
                 </div>
 
-                {/* Right Side: Cart Summary */}
+                {/* Cart Summary */}
                 <div className="border-l border-gray-300 pl-6">
                     <h2 className="text-xl font-bold mb-4">Items in Cart</h2>
                     {cart.length === 0 ? (

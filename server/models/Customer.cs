@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Server.Models
 {
@@ -24,6 +25,7 @@ namespace Server.Models
         [Column("email")]
         public required string Email { get; set; }
 
+        [JsonIgnore]
         public List<Order> Orders { get; set; } = new();
     }
 }

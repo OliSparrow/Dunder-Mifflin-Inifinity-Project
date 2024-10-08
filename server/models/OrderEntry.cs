@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Server.Models
 {
@@ -16,10 +17,12 @@ namespace Server.Models
 
         [Column("product_id")]
         public int ProductId { get; set; }
-        public required Paper Product { get; set; }
+        public Paper? Product { get; set; }
 
         [Column("order_id")]
         public int OrderId { get; set; }
-        public required Order Order { get; set; }
+       
+        [JsonIgnore]
+        public Order? Order { get; set; }
     }
 }

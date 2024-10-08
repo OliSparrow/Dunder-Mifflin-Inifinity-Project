@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Server.Models
 {
@@ -30,8 +31,9 @@ namespace Server.Models
         [Column("customer_id")]
         public int CustomerId { get; set; }
         
-public required Customer Customer { get; set; }
+        public required Customer Customer { get; set; }
 
+        [JsonIgnore]
         public List<OrderEntry> OrderEntries { get; set; } = new();
     }
 }
