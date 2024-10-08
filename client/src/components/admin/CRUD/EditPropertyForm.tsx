@@ -1,13 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import { Property } from "../../types.ts";
-
-
-interface EditPropertyFormProps {
-    property: Property;
-    onClose: () => void;
-    onUpdate: (updatedProperty: Partial<Property> & { id: number }) => void;
-}
+import axios, { AxiosError } from 'axios';
+import {EditPropertyFormProps, Property} from "../../types.ts";
 
 const EditPropertyForm: React.FC<EditPropertyFormProps> = ({ property, onClose, onUpdate }) => {
     // ---- USE STATES ----
@@ -40,19 +33,16 @@ const EditPropertyForm: React.FC<EditPropertyFormProps> = ({ property, onClose, 
             };
             onUpdate(updatedProperty);
             onClose();
-        } catch (err: any) {
-            console.error('Error updating property:', err);
-            if (err.response) {
-                //Server responded with a status other than 2xx
-                console.error('Response data:', err.response.data);
-                setError(err.response.data.message || 'Failed to update property.');
-            } else if (err.request) {
-                //Request was made but no response received
-                console.error('No response received:', err.request);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error updating property:', axiosError.response.data);
+                setError(axiosError.response.data.message || 'Failed to update property.');
+            } else if (axiosError.request) {
+                console.error('No response received:', axiosError.request);
                 setError('No response from server. Please try again.');
             } else {
-                //Something else happened while setting up the request
-                console.error('Error setting up request:', err.message);
+                console.error('Error setting up request:', axiosError.message);
                 setError('Error updating property. Please try again.');
             }
         } finally {

@@ -28,3 +28,9 @@ export interface DeleteCheckResponse {
     canDelete: boolean;
     assignedCount: number;
 }
+
+export interface EditPropertyFormProps {
+    property: Property;
+    onClose: () => void;
+    onUpdate: (updatedProperty: Partial<Property> & { id: number }) => void;
+}

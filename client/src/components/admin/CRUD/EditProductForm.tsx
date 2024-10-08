@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
 import { productsAtom, propertiesAtom } from '../../../atoms/productAtoms.ts';
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import {FaCheck} from "react-icons/fa";
 import {Product, Property} from "../../types.ts";
 
@@ -24,8 +24,15 @@ const EditProductForm: React.FC<{ product: Product; onClose: () => void }> = ({ 
             try {
                 const response = await axios.get<Property[]>('http://localhost:5000/api/property');
                 setProperties(response.data);
-            } catch (error) {
-                console.error('Error fetching properties', error);
+            } catch (error: unknown) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response) {
+                    console.error('Error fetching properties:', axiosError.response.data);
+                } else if (axiosError.request) {
+                    console.error('Error fetching properties: No response received', axiosError.request);
+                } else {
+                    console.error('Error:', axiosError.message);
+                }
             }
         };
 
@@ -40,13 +47,13 @@ const EditProductForm: React.FC<{ product: Product; onClose: () => void }> = ({ 
 
         const updatedProduct = {
             paper: {
-                id: product.id, // Ensure ID is included
+                id: product.id,
                 name,
                 price: parseFloat(price),
                 stock: parseInt(stock.toString()),
                 discontinued,
             },
-            propertyIds: selectedProperties, // Include property IDs
+            propertyIds: selectedProperties,
         };
 
         console.log("Updating product:", updatedProduct);
@@ -54,23 +61,22 @@ const EditProductForm: React.FC<{ product: Product; onClose: () => void }> = ({ 
         try {
             const response = await axios.put<Product>(`http://localhost:5000/api/paper/${product.id}`, updatedProduct);
             setProducts(products.map(p => (p.id === product.id ? response.data : p)));
-            onClose(); // Close modal after submission
-        } catch (error: any) {
-            if (error.response) {
-                // Server responded with a status other than 2xx
-                console.error('Server Error:', error.response.data);
-            } else if (error.request) {
-                // Request was made but no response received
-                console.error('Network Error:', error.message);
+            onClose();
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error updating product:', axiosError.response.data);
+                alert('Error updating product: ' + axiosError.response.data.message);
+            } else if (axiosError.request) {
+                console.error('Error updating product: No response received', axiosError.request);
             } else {
-                // Something else caused the error
-                console.error('Error:', error.message);
+                console.error('Error:', axiosError.message);
             }
         }
     };
 
     const handleModalContentClick = (e: React.MouseEvent) => {
-        e.stopPropagation(); // Makes sure that it only closes on background clicks
+        e.stopPropagation(); 
     };
 
 

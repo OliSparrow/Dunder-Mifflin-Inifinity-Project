@@ -1,23 +1,26 @@
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import { productsAtom, searchQueryAtom} from '../../atoms/productAtoms';
+import { productsAtom, searchQueryAtom } from '../../atoms/productAtoms';
 import { FaTrash, FaCheck, FaEdit, FaFilter } from 'react-icons/fa';
 import AddProductForm from './CRUD/AddProductForm';
 import EditProductForm from './CRUD/EditProductForm';
-import axios from 'axios';
-import {Product} from "../types.ts";
+import axios, { AxiosError } from 'axios';
+import { Product } from "../types.ts";
 
 const AdminProductList: React.FC = () => {
     // ---- ATOMS ----
     const [products, setProducts] = useAtom(productsAtom);
     const [searchQuery] = useAtom(searchQueryAtom);
-    
+
     // ---- USE STATES ----
     const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
     const [deleteMode, setDeleteMode] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [filterModalOpen, setFilterModalOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showDeleteMultipleModal, setShowDeleteMultipleModal] = useState(false);
     const [filterOptions, setFilterOptions] = useState({
         stockFilter: '', // '', 'In Stock', 'Out of Stock', 'Low Stock'
         discontinued: false,
@@ -29,8 +32,15 @@ const AdminProductList: React.FC = () => {
             try {
                 const response = await axios.get<Product[]>('http://localhost:5000/api/Paper');
                 setProducts(response.data);
-            } catch (error) {
-                console.error('Error fetching products:', error);
+            } catch (error: unknown) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response) {
+                    console.error('Error fetching products:', axiosError.response.data);
+                } else if (axiosError.request) {
+                    console.error('Error fetching products: No response received', axiosError.request);
+                } else {
+                    console.error('Error:', axiosError.message);
+                }
             }
         };
 
@@ -92,57 +102,83 @@ const AdminProductList: React.FC = () => {
         );
     };
 
-    const handleDeleteSelected = async () => {
-        const confirmed = window.confirm(
-            'Are you sure you want to delete the selected products?'
-        );
-        if (confirmed) {
-            try {
-                await Promise.all(
-                    selectedProducts.map((id) =>
-                        axios.delete(`http://localhost:5000/api/Paper/${id}`)
-                    )
-                );
-                setProducts(
-                    products.filter((product) => !selectedProducts.includes(product.id))
-                );
-                setSelectedProducts([]);
-                setDeleteMode(false);
-            } catch (error: any) {
-                console.error('Error deleting products:', error);
-                alert('Failed to delete the selected products. Please try again.');
-            }
-        }
-    };
-
     const handleDeleteProduct = async (id: number) => {
-        const confirmed = window.confirm(
-            'Are you sure you want to delete this product?'
-        );
-        if (confirmed) {
-            try {
-                await axios.delete(`http://localhost:5000/api/Paper/${id}`);
-                setProducts(products.filter((product) => product.id !== id));
-            } catch (error: any) {
-                console.error('Error deleting product:', error);
-                alert('Failed to delete the product. Please try again.');
+        const product = products.find((p) => p.id === id);
+        setProductToDelete(product || null);
+        setShowDeleteModal(true); 
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!productToDelete) return;
+
+        try {
+            await axios.delete(`http://localhost:5000/api/Paper/${productToDelete.id}`);
+            setProducts(products.filter((product) => product.id !== productToDelete.id));
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error deleting product:', axiosError.response.data);
+                alert('Error deleting product: ' + axiosError.response.data.message);
+            } else if (axiosError.request) {
+                console.error('Error deleting product: No response received', axiosError.request);
+            } else {
+                console.error('Error:', axiosError.message);
             }
+        } finally {
+            setShowDeleteModal(false); 
+            setProductToDelete(null);  
         }
     };
 
+    const handleDeleteSelected = () => {
+        setShowDeleteMultipleModal(true);
+    };
+
+    const handleConfirmDeleteMultiple = async () => {
+        try {
+            await Promise.all(
+                selectedProducts.map(async (id) => {
+                    try {
+                        await axios.delete(`http://localhost:5000/api/Paper/${id}`);
+                    } catch (error: unknown) {
+                        const axiosError = error as AxiosError;
+                        if (axiosError.response) {
+                            console.error(`Error deleting product with ID ${id}:`, axiosError.response.data);
+                        } else if (axiosError.request) {
+                            console.error(`Error deleting product with ID ${id}: No response received`, axiosError.request);
+                        } else {
+                            console.error('Error:', axiosError.message);
+                        }
+                    }
+                })
+            );
+
+            setProducts(products.filter((product) => !selectedProducts.includes(product.id)));
+            setSelectedProducts([]);
+            setDeleteMode(false);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error deleting multiple products:', axiosError.response.data);
+            } else if (axiosError.request) {
+                console.error('Error deleting multiple products: No response received', axiosError.request);
+            } else {
+                console.error('Error:', axiosError.message);
+            }
+        } finally {
+            setShowDeleteMultipleModal(false);
+        }
+    };
 
     const handleDeleteButtonClick = () => {
         if (deleteMode) {
             if (selectedProducts.length > 0) {
-                // Proceed to delete selected products
                 handleDeleteSelected();
             } else {
-                // Exit delete mode
                 setDeleteMode(false);
                 setSelectedProducts([]);
             }
         } else {
-            // Enter delete mode
             setDeleteMode(true);
         }
     };
@@ -368,6 +404,42 @@ const AdminProductList: React.FC = () => {
                     product={editingProduct}
                     onClose={() => setEditingProduct(null)}
                 />
+            )}
+
+            {/* Delete Confirmation Modal for Single Product */}
+            {showDeleteModal && productToDelete && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Delete Product</h3>
+                        <p>Are you sure you want to delete the product "{productToDelete.name}"?</p>
+                        <div className="modal-action">
+                            <button className="btn btn-error" onClick={handleConfirmDelete}>
+                                Delete
+                            </button>
+                            <button className="btn" onClick={() => setShowDeleteModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal for Multiple Products */}
+            {showDeleteMultipleModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Delete Selected Products</h3>
+                        <p>Are you sure you want to delete the selected products?</p>
+                        <div className="modal-action">
+                            <button className="btn btn-error" onClick={handleConfirmDeleteMultiple}>
+                                Delete
+                            </button>
+                            <button className="btn" onClick={() => setShowDeleteMultipleModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Render Filter Modal */}
