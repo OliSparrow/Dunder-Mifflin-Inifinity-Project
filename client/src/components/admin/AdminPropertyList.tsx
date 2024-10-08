@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { propertiesAtom, Property } from '../../atoms/productAtoms';
+import { propertiesAtom } from '../../atoms/productAtoms';
 import AddPropertyForm from './CRUD/AddPropertyForm';
 import EditPropertyForm from './CRUD/EditPropertyForm';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { FaTrash, FaEdit, FaCheck } from 'react-icons/fa';
+import { Property, DeleteCheckResponse } from '../types.ts';
 
 const AdminPropertyList: React.FC = () => {
     //---- ATOMS -----
@@ -21,15 +22,22 @@ const AdminPropertyList: React.FC = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showDeleteMultipleModal, setShowDeleteMultipleModal] = useState(false);
     const [assignedCountsForMultiple, setAssignedCountsForMultiple] = useState<Map<number, number>>(new Map());
-
+    
     //---- USE EFFECTS -----
     useEffect(() => {
         const fetchProperties = async () => {
             try {
                 const response = await axios.get<Property[]>('http://localhost:5000/api/property');
                 setProperties(response.data);
-            } catch (error) {
-                console.error('Error fetching properties:', error);
+            } catch (error: unknown) {
+                const axiosError = error as AxiosError;
+                if (axiosError.response) {
+                    console.error('Error fetching properties:', axiosError.response.data);
+                } else if (axiosError.request) {
+                    console.error('Error fetching properties: No response received', axiosError.request);
+                } else {
+                    console.error('Error:', axiosError.message);
+                }
             }
         };
 
@@ -48,10 +56,10 @@ const AdminPropertyList: React.FC = () => {
     const handleDeleteProperty = async (id: number) => {
         try {
             //Pre-check if the property can be deleted
-            const response = await axios.get(`http://localhost:5000/api/property/${id}/canDelete`);
+            const response = await axios.get<DeleteCheckResponse>(`http://localhost:5000/api/property/${id}/canDelete`);
             const { canDelete, assignedCount } = response.data;
 
-            //Update state with deletion information for possible future use in UI
+            //Update state with deletion information 
             setCanDelete(canDelete);
             setAssignedCount(assignedCount);
 
@@ -59,10 +67,17 @@ const AdminPropertyList: React.FC = () => {
             const property = properties.find(p => p.id === id);
             setPropertyToDelete(property || null);
 
-            // Step 2: Show the modal for confirmation
+            //Show the modal for confirmation
             setShowDeleteModal(true);
-        } catch (error: any) {
-            console.error('Error fetching delete info:', error);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error fetching delete info:', axiosError.response.data);
+            } else if (axiosError.request) {
+                console.error('Error fetching delete info: No response received', axiosError.request);
+            } else {
+                console.error('Error:', axiosError.message);
+            }
         }
     };
 
@@ -79,8 +94,15 @@ const AdminPropertyList: React.FC = () => {
 
             //Update properties state to remove the deleted property
             setProperties(properties.filter((property) => property.id !== propertyToDelete.id));
-        } catch (error: any) {
-            console.error('Error deleting property:', error);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error deleting property:', axiosError.response.data);
+            } else if (axiosError.request) {
+                console.error('Error deleting property: No response received', axiosError.request);
+            } else {
+                console.error('Error:', axiosError.message);
+            }
         } finally {
             //Close the modal and reset delete states
             setShowDeleteModal(false);
@@ -93,8 +115,8 @@ const AdminPropertyList: React.FC = () => {
     const handleDeleteSelectedProperties = async () => {
         try {
             const assignedCountsMap = new Map<number, number>();
-            for (let id of selectedProperties) {
-                const response = await axios.get(`http://localhost:5000/api/property/${id}/canDelete`);
+            for (const id of selectedProperties) {
+                const response = await axios.get<DeleteCheckResponse>(`http://localhost:5000/api/property/${id}/canDelete`);
                 const { canDelete, assignedCount } = response.data;
 
                 assignedCountsMap.set(id, assignedCount);
@@ -107,10 +129,16 @@ const AdminPropertyList: React.FC = () => {
             //Update state with assigned counts for multiple properties
             setAssignedCountsForMultiple(assignedCountsMap);
 
-            //Show modal for confirmation
             setShowDeleteMultipleModal(true);
-        } catch (error: any) {
-            console.error('Error fetching delete info for multiple properties:', error);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error fetching delete info for multiple properties:', axiosError.response.data);
+            } else if (axiosError.request) {
+                console.error('Error fetching delete info: No response received', axiosError.request);
+            } else {
+                console.error('Error:', axiosError.message);
+            }
         }
     };
 
@@ -126,8 +154,15 @@ const AdminPropertyList: React.FC = () => {
                         } else {
                             await axios.delete(deleteUrl);
                         }
-                    } catch (error: any) {
-                        console.error(`Error deleting property with ID ${id}:`, error);
+                    } catch (error: unknown) {
+                        const axiosError = error as AxiosError;
+                        if (axiosError.response) {
+                            console.error(`Error deleting property with ID ${id}:`, axiosError.response.data);
+                        } else if (axiosError.request) {
+                            console.error(`Error deleting property with ID ${id}: No response received`, axiosError.request);
+                        } else {
+                            console.error('Error:', axiosError.message);
+                        }
                     }
                 })
             );
@@ -136,8 +171,15 @@ const AdminPropertyList: React.FC = () => {
             setProperties(properties.filter((property) => !selectedProperties.includes(property.id)));
             setSelectedProperties([]);
             setDeleteMode(false);
-        } catch (error: any) {
-            console.error('Error deleting multiple properties:', error);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+            if (axiosError.response) {
+                console.error('Error deleting multiple properties:', axiosError.response.data);
+            } else if (axiosError.request) {
+                console.error('Error deleting multiple properties: No response received', axiosError.request);
+            } else {
+                console.error('Error:', axiosError.message);
+            }
         } finally {
             // Close the modal and reset delete states
             setShowDeleteMultipleModal(false);

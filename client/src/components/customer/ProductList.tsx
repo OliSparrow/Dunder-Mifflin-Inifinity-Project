@@ -5,12 +5,12 @@ import {
     filterOptionAtom,
     productsAtom,
     sortOptionAtom,
-    searchQueryAtom,
-    Product, showDiscontinuedAtom
+    searchQueryAtom, showDiscontinuedAtom
 } from "../../atoms/productAtoms.ts";
 import {Link} from "react-router-dom";
 import axios from 'axios';
 import { FaCheckCircle, FaExclamationCircle, FaTimesCircle } from "react-icons/fa";
+import {Product} from "../types.ts";
 
 //Component displaying a list of the products + ability to filter and search
 //---SPECIFICALLY FOR CUSTOMERS---

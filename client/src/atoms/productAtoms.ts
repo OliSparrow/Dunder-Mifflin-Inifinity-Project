@@ -1,25 +1,5 @@
 import { atom } from 'jotai';
-
-export interface Product {
-    id: number;
-    name: string;
-    price: number;
-    stock: number;  
-    discontinued: boolean;
-    paperProperties: PaperProperty[];
-}
-
-export interface PaperProperty {
-    paperId: number;
-    propertyId: number;
-    property: Property;
-}
-
-export interface Property {
-    id: number;
-    propertyName: string;
-    paperProperties: PaperProperty[];
-}
+import {Product, Property} from "../components/types.ts";
 
 //Atom for holding the property list
 export const propertiesAtom = atom<Property[]>([]);

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAtom } from 'jotai';
-import {Product, productsAtom, searchQueryAtom} from '../../atoms/productAtoms';
+import { productsAtom, searchQueryAtom} from '../../atoms/productAtoms';
 import { FaTrash, FaCheck, FaEdit, FaFilter } from 'react-icons/fa';
 import AddProductForm from './CRUD/AddProductForm';
 import EditProductForm from './CRUD/EditProductForm';
 import axios from 'axios';
+import {Product} from "../types.ts";
 
 const AdminProductList: React.FC = () => {
     // ---- ATOMS ----

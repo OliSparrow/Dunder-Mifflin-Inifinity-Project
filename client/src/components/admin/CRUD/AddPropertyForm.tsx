@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAtom } from 'jotai';
-import { propertiesAtom, Property } from '../../../atoms/productAtoms';
+import { propertiesAtom } from '../../../atoms/productAtoms';
 import axios from 'axios';
+import { Property } from "../../types.ts";
 
 interface AddPropertyFormProps {
     onClose: () => void;

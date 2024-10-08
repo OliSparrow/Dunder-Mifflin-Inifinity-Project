@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Property } from '../../../atoms/productAtoms';
 import axios from 'axios';
+import { Property } from "../../types.ts";
+
 
 interface EditPropertyFormProps {
     property: Property;

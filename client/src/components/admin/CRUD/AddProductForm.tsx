@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import { useAtom } from 'jotai';
-import {Product, productsAtom, propertiesAtom, Property} from '../../../atoms/productAtoms.ts';
+import { productsAtom, propertiesAtom } from '../../../atoms/productAtoms.ts';
 import axios from "axios";
 import {FaCheck} from "react-icons/fa";
+import {Product, Property} from "../../types.ts";
 
 
 const AddProductForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
