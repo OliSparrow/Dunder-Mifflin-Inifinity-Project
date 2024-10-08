@@ -15,6 +15,8 @@ const AdminPropertyList: React.FC = () => {
     const [editingProperty, setEditingProperty] = useState<Property | null>(null);
     const [selectedProperties, setSelectedProperties] = useState<number[]>([]);
     const [deleteMode, setDeleteMode] = useState(false);
+    const [canDelete, setCanDelete] = useState<boolean | null>(null);
+    const [assignedCount, setAssignedCount] = useState<number | null>(null);
 
     //---- USE EFFECTS -----
     useEffect(() => {
@@ -40,14 +42,42 @@ const AdminPropertyList: React.FC = () => {
     };
 
     const handleDeleteProperty = async (id: number) => {
-        const confirmed = window.confirm('Are you sure you want to delete this property?');
-        if (confirmed) {
-            try {
-                await axios.delete(`http://localhost:5000/api/property/${id}`);
-                setProperties(properties.filter((property) => property.id !== id));
-            } catch (error) {
-                console.error('Error deleting property:', error);
+        try {
+            // Step 1: Pre-check if the property can be deleted
+            const response = await axios.get(`http://localhost:5000/api/property/${id}/canDelete`);
+            const { canDelete, assignedCount } = response.data;
+
+            // Update state with deletion information
+            setCanDelete(canDelete);
+            setAssignedCount(assignedCount);
+
+            // Step 2: Show confirmation message based on the pre-check result
+            let confirmationMessage = 'Are you sure you want to delete this property?';
+            if (!canDelete) {
+                confirmationMessage = `Property is assigned to ${assignedCount} product(s). Are you sure you want to delete it?`;
             }
+
+            const confirmed = window.confirm(confirmationMessage);
+            if (!confirmed) {
+                return;
+            }
+
+            // Step 3: Proceed with deletion, using forced deletion if necessary
+            const deleteUrl = `http://localhost:5000/api/property/${id}`;
+            if (!canDelete) {
+                await axios.delete(deleteUrl, { params: { force: true } });
+            } else {
+                await axios.delete(deleteUrl);
+            }
+
+            // Step 4: Update properties state to remove the deleted property
+            setProperties(properties.filter((property) => property.id !== id));
+
+            // Reset delete states
+            setCanDelete(null);
+            setAssignedCount(null);
+        } catch (error: any) {
+            console.error('Error deleting property:', error);
         }
     };
 
@@ -63,36 +93,49 @@ const AdminPropertyList: React.FC = () => {
         const confirmed = window.confirm(
             'Are you sure you want to delete the selected properties?'
         );
-        if (confirmed) {
-            try {
-                await Promise.all(
-                    selectedProperties.map((id) =>
-                        axios.delete(`http://localhost:5000/api/property/${id}`)
-                    )
-                );
-                setProperties(
-                    properties.filter((property) => !selectedProperties.includes(property.id))
-                );
-                setSelectedProperties([]);
-                setDeleteMode(false);
-            } catch (error) {
-                console.error('Error deleting properties:', error);
-            }
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            await Promise.all(
+                selectedProperties.map(async (id) => {
+                    try {
+                        await axios.delete(`http://localhost:5000/api/property/${id}`);
+                    } catch (error: any) {
+                        if (error.response && error.response.status === 400 && error.response.data.message) {
+                            const userConfirmed = window.confirm(
+                                `Property with ID ${id}: ${error.response.data.message} Click OK to delete and unassign it from all products.`
+                            );
+                            if (userConfirmed) {
+                                await axios.delete(`http://localhost:5000/api/property/${id}`, {
+                                    params: { force: true },
+                                });
+                            }
+                        } else {
+                            console.error(`Error deleting property with ID ${id}:`, error);
+                        }
+                    }
+                })
+            );
+
+            setProperties(properties.filter((property) => !selectedProperties.includes(property.id)));
+            setSelectedProperties([]);
+            setDeleteMode(false);
+        } catch (error) {
+            console.error('Error deleting properties:', error);
         }
     };
 
     const handleDeleteButtonClick = () => {
         if (deleteMode) {
             if (selectedProperties.length > 0) {
-                //Proceed to delete selected properties
                 handleDeleteSelectedProperties();
             } else {
-                //Exit delete mode
                 setDeleteMode(false);
                 setSelectedProperties([]);
             }
         } else {
-            //Enter delete mode
             setDeleteMode(true);
         }
     };
@@ -102,7 +145,6 @@ const AdminPropertyList: React.FC = () => {
     };
 
     const handleUpdateProperty = (updatedProperty: Partial<Property> & { id: number }) => {
-        console.log('Updating property in state:', updatedProperty);
         setProperties((prevProperties) =>
             prevProperties.map((property) =>
                 property.id === updatedProperty.id ? { ...property, ...updatedProperty } : property
@@ -115,7 +157,6 @@ const AdminPropertyList: React.FC = () => {
         <div className="w-full p-4">
             {/* Action Buttons */}
             <div className="flex items-center justify-between mb-4">
-                {/* Left Side Buttons */}
                 <div className="flex items-center gap-2">
                     {!deleteMode && (
                         <button className="btn btn-primary" onClick={handleAddPropertyClick}>

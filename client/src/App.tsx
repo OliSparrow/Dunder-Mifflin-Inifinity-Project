@@ -16,7 +16,7 @@ const App: React.FC = () => {
                 <div className="p-4">
                     <Routes>
                         <Route path="/*" element={<CustomerView/>}/>
-                        <Route path="/admin*" element={<AdminDashboard />} />
+                        <Route path="/admin/*" element={<AdminDashboard />} />
                         <Route path="/cart" element={<Cart/>}/>
                         <Route path="/checkout" element={<Checkout />} /> 
                     </Routes>

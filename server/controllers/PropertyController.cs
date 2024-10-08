@@ -86,18 +86,53 @@ namespace Server.Controllers
 
         // DELETE: api/Property/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProperty(int id)
+        public async Task<IActionResult> DeleteProperty(int id, [FromQuery] bool force = false)
         {
-            var property = await _context.Properties.FindAsync(id);
+            // Fetch the property including any related paper properties
+            var property = await _context.Properties
+                .Include(p => p.PaperProperties)
+                .FirstOrDefaultAsync(p => p.Id == id);
+    
             if (property == null)
             {
                 return NotFound();
             }
 
+            // Check if property is assigned to any products
+            if (property.PaperProperties.Any())
+            {
+                if (!force)
+                {
+                    return BadRequest(new { message = $"Property is assigned to {property.PaperProperties.Count} products. Do you still want to delete it?" });
+                }
+                else
+                {
+                    // Remove associations with papers
+                    _context.PaperProperties.RemoveRange(property.PaperProperties);
+                }
+            }
+
+            // Proceed to delete the property
             _context.Properties.Remove(property);
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        //Checker if its associated to products before deleting
+        [HttpGet("{id}/canDelete")]
+        public async Task<IActionResult> CanDeleteProperty(int id)
+        {
+            var property = await _context.Properties
+                .Include(p => p.PaperProperties)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(new { canDelete = !property.PaperProperties.Any(), assignedCount = property.PaperProperties.Count });
         }
 
         private bool PropertyExists(int id)
