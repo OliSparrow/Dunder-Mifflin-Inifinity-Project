@@ -17,6 +17,10 @@ const AdminPropertyList: React.FC = () => {
     const [deleteMode, setDeleteMode] = useState(false);
     const [canDelete, setCanDelete] = useState<boolean | null>(null);
     const [assignedCount, setAssignedCount] = useState<number | null>(null);
+    const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showDeleteMultipleModal, setShowDeleteMultipleModal] = useState(false);
+    const [assignedCountsForMultiple, setAssignedCountsForMultiple] = useState<Map<number, number>>(new Map());
 
     //---- USE EFFECTS -----
     useEffect(() => {
@@ -43,88 +47,110 @@ const AdminPropertyList: React.FC = () => {
 
     const handleDeleteProperty = async (id: number) => {
         try {
-            // Step 1: Pre-check if the property can be deleted
+            //Pre-check if the property can be deleted
             const response = await axios.get(`http://localhost:5000/api/property/${id}/canDelete`);
             const { canDelete, assignedCount } = response.data;
 
-            // Update state with deletion information
+            //Update state with deletion information for possible future use in UI
             setCanDelete(canDelete);
             setAssignedCount(assignedCount);
 
-            // Step 2: Show confirmation message based on the pre-check result
-            let confirmationMessage = 'Are you sure you want to delete this property?';
-            if (!canDelete) {
-                confirmationMessage = `Property is assigned to ${assignedCount} product(s). Are you sure you want to delete it?`;
-            }
+            //Set property to delete
+            const property = properties.find(p => p.id === id);
+            setPropertyToDelete(property || null);
 
-            const confirmed = window.confirm(confirmationMessage);
-            if (!confirmed) {
-                return;
-            }
+            // Step 2: Show the modal for confirmation
+            setShowDeleteModal(true);
+        } catch (error: any) {
+            console.error('Error fetching delete info:', error);
+        }
+    };
 
-            // Step 3: Proceed with deletion, using forced deletion if necessary
-            const deleteUrl = `http://localhost:5000/api/property/${id}`;
+    const handleConfirmDelete = async () => {
+        if (!propertyToDelete) return;
+
+        try {
+            const deleteUrl = `http://localhost:5000/api/property/${propertyToDelete.id}`;
             if (!canDelete) {
                 await axios.delete(deleteUrl, { params: { force: true } });
             } else {
                 await axios.delete(deleteUrl);
             }
 
-            // Step 4: Update properties state to remove the deleted property
-            setProperties(properties.filter((property) => property.id !== id));
-
-            // Reset delete states
-            setCanDelete(null);
-            setAssignedCount(null);
+            //Update properties state to remove the deleted property
+            setProperties(properties.filter((property) => property.id !== propertyToDelete.id));
         } catch (error: any) {
             console.error('Error deleting property:', error);
+        } finally {
+            //Close the modal and reset delete states
+            setShowDeleteModal(false);
+            setCanDelete(null);
+            setAssignedCount(null);
+            setPropertyToDelete(null);
         }
-    };
-
-    const handleSelectProperty = (id: number) => {
-        setSelectedProperties((prevSelected) =>
-            prevSelected.includes(id)
-                ? prevSelected.filter((propertyId) => propertyId !== id)
-                : [...prevSelected, id]
-        );
     };
 
     const handleDeleteSelectedProperties = async () => {
-        const confirmed = window.confirm(
-            'Are you sure you want to delete the selected properties?'
-        );
-        if (!confirmed) {
-            return;
-        }
+        try {
+            const assignedCountsMap = new Map<number, number>();
+            for (let id of selectedProperties) {
+                const response = await axios.get(`http://localhost:5000/api/property/${id}/canDelete`);
+                const { canDelete, assignedCount } = response.data;
 
+                assignedCountsMap.set(id, assignedCount);
+
+                if (!canDelete) {
+                    setCanDelete(false);
+                }
+            }
+
+            //Update state with assigned counts for multiple properties
+            setAssignedCountsForMultiple(assignedCountsMap);
+
+            //Show modal for confirmation
+            setShowDeleteMultipleModal(true);
+        } catch (error: any) {
+            console.error('Error fetching delete info for multiple properties:', error);
+        }
+    };
+
+    const handleConfirmDeleteMultiple = async () => {
         try {
             await Promise.all(
                 selectedProperties.map(async (id) => {
                     try {
-                        await axios.delete(`http://localhost:5000/api/property/${id}`);
-                    } catch (error: any) {
-                        if (error.response && error.response.status === 400 && error.response.data.message) {
-                            const userConfirmed = window.confirm(
-                                `Property with ID ${id}: ${error.response.data.message} Click OK to delete and unassign it from all products.`
-                            );
-                            if (userConfirmed) {
-                                await axios.delete(`http://localhost:5000/api/property/${id}`, {
-                                    params: { force: true },
-                                });
-                            }
+                        const deleteUrl = `http://localhost:5000/api/property/${id}`;
+                        if (assignedCountsForMultiple.get(id) !== 0) {
+                            // Force delete if assigned
+                            await axios.delete(deleteUrl, { params: { force: true } });
                         } else {
-                            console.error(`Error deleting property with ID ${id}:`, error);
+                            await axios.delete(deleteUrl);
                         }
+                    } catch (error: any) {
+                        console.error(`Error deleting property with ID ${id}:`, error);
                     }
                 })
             );
 
+            // Remove deleted properties from the state
             setProperties(properties.filter((property) => !selectedProperties.includes(property.id)));
             setSelectedProperties([]);
             setDeleteMode(false);
-        } catch (error) {
-            console.error('Error deleting properties:', error);
+        } catch (error: any) {
+            console.error('Error deleting multiple properties:', error);
+        } finally {
+            // Close the modal and reset delete states
+            setShowDeleteMultipleModal(false);
+            setCanDelete(null);
+            setAssignedCountsForMultiple(new Map());
         }
+    };
+
+    const handleCancelDeleteMultiple = () => {
+        setShowDeleteMultipleModal(false);
+        setCanDelete(null);
+        setAssignedCountsForMultiple(new Map());
+        setSelectedProperties([]);
     };
 
     const handleDeleteButtonClick = () => {
@@ -142,6 +168,14 @@ const AdminPropertyList: React.FC = () => {
 
     const handleClearSelections = () => {
         setSelectedProperties([]);
+    };
+
+    const handleSelectProperty = (id: number) => {
+        setSelectedProperties((prevSelected) =>
+            prevSelected.includes(id)
+                ? prevSelected.filter((propertyId) => propertyId !== id)
+                : [...prevSelected, id]
+        );
     };
 
     const handleUpdateProperty = (updatedProperty: Partial<Property> & { id: number }) => {
@@ -249,14 +283,62 @@ const AdminPropertyList: React.FC = () => {
                 </table>
             </div>
 
+            {/* Add Property Form */}
             {showAddForm && <AddPropertyForm onClose={() => setShowAddForm(false)} />}
 
+            {/* Edit Property Form */}
             {editingProperty && (
                 <EditPropertyForm
                     property={editingProperty}
                     onClose={() => setEditingProperty(null)}
                     onUpdate={handleUpdateProperty}
                 />
+            )}
+
+            {/* Delete Confirmation Modal for Single Property */}
+            {showDeleteModal && propertyToDelete && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Delete Property</h3>
+                        <p>
+                            {canDelete
+                                ? `Are you sure you want to delete the property "${propertyToDelete.propertyName}"?`
+                                : `The property "${propertyToDelete.propertyName}" is assigned to ${assignedCount} product(s). Are you sure you want to delete it?`}
+                        </p>
+                        <div className="modal-action">
+                            <button className="btn btn-error" onClick={handleConfirmDelete}>
+                                Delete
+                            </button>
+                            <button className="btn" onClick={handleCancelDeleteMultiple}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal for Multiple Properties */}
+            {showDeleteMultipleModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Delete Selected Properties</h3>
+                        <p>
+                            {Array.from(assignedCountsForMultiple.entries()).some(
+                                ([, count]) => count > 0
+                            )
+                                ? 'Some of the selected properties are assigned to products. Are you sure you want to delete them all?'
+                                : 'Are you sure you want to delete the selected properties?'}
+                        </p>
+                        <div className="modal-action">
+                            <button className="btn btn-error" onClick={handleConfirmDeleteMultiple}>
+                                Delete
+                            </button>
+                            <button className="btn" onClick={handleCancelDeleteMultiple}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
