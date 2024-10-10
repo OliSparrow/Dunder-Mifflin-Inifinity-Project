@@ -34,8 +34,8 @@ const ProductDetail: React.FC = () => {
     };
 
     const handleAddToCart = () => {
-        if (product.discontinued) {
-            // Show modal if product is discontinued and user somehow manages to add to cart
+        if (product.discontinued || product.stock === 0) {
+            // Show modal if product is discontinued or out of stock
             setShowDiscontinuedModal(true);
             return;
         }
@@ -97,7 +97,7 @@ const ProductDetail: React.FC = () => {
                 {/* Product details */}
                 <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
                 <p className="text-lg mb-2">Price: ${product.price}</p>
-                <p className="text-md mb-6">Storage: {product.stock}</p>
+                <p className="text-md mb-6">Stock: {product.stock}</p>
 
                 {/* Product properties */}
                 <div className="mb-6">
@@ -105,9 +105,12 @@ const ProductDetail: React.FC = () => {
                     {renderProperties()}
                 </div>
 
-                {/* Discontinued Label */}
+                {/* Discontinued or Out of Stock Labels */}
                 {product.discontinued && (
                     <span className="badge badge-error absolute bottom-4 left-4">Discontinued</span>
+                )}
+                {product.stock === 0 && (
+                    <span className="badge badge-warning absolute bottom-4 right-4">Out of Stock</span>
                 )}
 
                 {/* Button to add + quantity input */}
@@ -119,11 +122,12 @@ const ProductDetail: React.FC = () => {
                         onChange={handleQuantityChange}
                         min="1"
                         className="input input-bordered bg-white w-16"
+                        disabled={product.stock === 0}
                     />
                     <button
                         className="btn btn-primary"
                         onClick={handleAddToCart}
-                        disabled={product.discontinued}
+                        disabled={product.discontinued || product.stock === 0}
                     >
                         <FiShoppingCart className="mr-2" />
                         Add to Cart
@@ -139,12 +143,14 @@ const ProductDetail: React.FC = () => {
                 </button>
             </div>
 
-            {/* Discontinued Product Modal */}
+            {/* Discontinued or Out of Stock Product Modal */}
             {showDiscontinuedModal && (
                 <div className="modal modal-open">
                     <div className="modal-box">
-                        <h3 className="font-bold text-lg">Product Discontinued</h3>
-                        <p>The product "{product.name}" is discontinued and cannot be added to the cart.</p>
+                        <h3 className="font-bold text-lg">Product Unavailable</h3>
+                        <p>
+                            The product "{product.name}" is {product.discontinued ? "discontinued" : "out of stock"} and cannot be added to the cart.
+                        </p>
                         <div className="modal-action">
                             <button className="btn" onClick={handleCloseDiscontinuedModal}>
                                 OK
