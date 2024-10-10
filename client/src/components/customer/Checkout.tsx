@@ -24,11 +24,16 @@ const Checkout: React.FC = () => {
     const handlePlaceOrder = async () => {
         console.log("Cart before placing the order: ", cart);
 
+        // Prepare order object using OrderDTO structure
         const order = {
-            customer: customer,
+            customerName: customer.name,
+            customerAddress: customer.address,
+            customerPhone: customer.phone,
+            customerEmail: customer.email,
+            customerId: null, 
             orderEntries: cart.map(item => ({
                 productId: item.product.id,
-                quantity: item.quantity,
+                quantity: item.quantity
             })),
             status: "Pending",
             orderDate: new Date().toISOString(),
@@ -49,7 +54,7 @@ const Checkout: React.FC = () => {
             if (!response.ok) {
                 const error = await response.json();
                 console.error('Order error:', error);
-                alert(`Error placing order: ${error.title}`);
+                alert(`Error placing order: ${error.title || error}`);
             } else {
                 alert('Order placed successfully!');
                 setCart([]);

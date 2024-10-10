@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Server.Data;
@@ -5,34 +6,37 @@ using Server.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Text.Json;
+using Server.dtos;
 
-namespace Server.Controllers
-{
     [Route("api/[controller]")]
     [ApiController]
     public class OrderController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public OrderController(AppDbContext context)
+        public OrderController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         // GET: api/Order
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders()
         {
             try
             {
-                return await _context.Orders
+                var orders = await _context.Orders
                     .Include(o => o.OrderEntries)
                     .ThenInclude(oe => oe.Product)
                     .Include(o => o.Customer)
                     .ToListAsync();
+
+                var orderDTOs = _mapper.Map<List<OrderDTO>>(orders);
+                return orderDTOs;
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching orders: {ex.Message} - {ex.StackTrace}");
                 return StatusCode(500, "Internal Server Error");
@@ -41,91 +45,112 @@ namespace Server.Controllers
 
         // GET: api/Order/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Order>> GetOrder(int id)
+        public async Task<ActionResult<OrderDTO>> GetOrder(int id)
         {
-            var order = await _context.Orders
-                .Include(o => o.OrderEntries)
-                .ThenInclude(oe => oe.Product)
-                .Include(o => o.Customer)
-                .FirstOrDefaultAsync(o => o.Id == id);
+            try
+            {
+                var order = await _context.Orders
+                    .Include(o => o.OrderEntries)
+                    .ThenInclude(oe => oe.Product)
+                    .Include(o => o.Customer)
+                    .FirstOrDefaultAsync(o => o.Id == id);
 
-            if (order == null)
-                return NotFound();
+                if (order == null)
+                    return NotFound();
 
-            return order;
+                var orderDTO = _mapper.Map<OrderDTO>(order);
+                return orderDTO;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching order by ID: {ex.Message} - {ex.StackTrace}");
+                return StatusCode(500, "Internal Server Error");
+            }
         }
 
         // POST: api/Order
-        [HttpPost]
-        public async Task<ActionResult<Order>> PlaceOrder([FromBody] Order order)
+       [HttpPost]
+        public async Task<ActionResult<OrderDTO>> PlaceOrder([FromBody] OrderDTO orderDTO)
         {
-            Console.WriteLine($"Order received: {JsonSerializer.Serialize(order)}");
+            if (orderDTO == null)
+            {
+                Console.WriteLine("Order data is null.");
+                return BadRequest("Order data cannot be null.");
+            }
+
+            if (string.IsNullOrEmpty(orderDTO.CustomerEmail) || string.IsNullOrEmpty(orderDTO.CustomerName) ||
+                string.IsNullOrEmpty(orderDTO.CustomerAddress) || string.IsNullOrEmpty(orderDTO.CustomerPhone))
+            {
+                Console.WriteLine("Customer information is missing or invalid in OrderDTO.");
+                return BadRequest("Customer information (name, address, phone, email) is required.");
+            }
 
             using var transaction = await _context.Database.BeginTransactionAsync();
-            
+
             try
             {
-                // Customer logic
-                var customer = await _context.Customers
-                    .FirstOrDefaultAsync(c => c.Email == order.Customer.Email);
+                Console.WriteLine("Mapping OrderDTO to Order entity...");
+                var order = _mapper.Map<Order>(orderDTO);
 
+                Console.WriteLine("Fetching or creating customer...");
+                var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Email == orderDTO.CustomerEmail);
                 if (customer == null)
                 {
+                    Console.WriteLine("Customer not found, creating new customer.");
                     customer = new Customer
                     {
-                        Name = order.Customer.Name,
-                        Address = order.Customer.Address,
-                        Phone = order.Customer.Phone,
-                        Email = order.Customer.Email
+                        Name = orderDTO.CustomerName,
+                        Address = orderDTO.CustomerAddress,
+                        Phone = orderDTO.CustomerPhone,
+                        Email = orderDTO.CustomerEmail
                     };
+
                     _context.Customers.Add(customer);
                     await _context.SaveChangesAsync();
                 }
 
-                // Set customer ID and create valid order entries
+                // Set customer ID and associate the customer object
                 order.CustomerId = customer.Id;
                 order.Customer = customer;
 
-                // Prepare valid order entries list and calculate total amount
+                Console.WriteLine("Processing order entries...");
                 var validOrderEntries = new List<OrderEntry>();
                 double totalAmount = 0;
 
-                foreach (var entry in order.OrderEntries)
+                foreach (var entryDTO in orderDTO.OrderEntries)
                 {
-                    var product = await _context.Papers.FindAsync(entry.ProductId);
-
+                    var product = await _context.Papers.FindAsync(entryDTO.ProductId);
                     if (product == null)
                     {
+                        Console.WriteLine($"Product with ID {entryDTO.ProductId} not found.");
                         await transaction.RollbackAsync();
-                        return BadRequest($"Product with ID {entry.ProductId} not found.");
+                        return BadRequest($"Product with ID {entryDTO.ProductId} not found.");
                     }
 
-                    if (product.Stock < entry.Quantity)
+                    if (product.Stock < entryDTO.Quantity)
                     {
+                        Console.WriteLine($"Not enough stock for product {product.Name}.");
                         await transaction.RollbackAsync();
                         return BadRequest($"Not enough stock for product {product.Name}");
                     }
 
-                    // Update stock and calculate total amount
-                    product.Stock -= entry.Quantity;
-                    totalAmount += entry.Quantity * product.Price;
+                    // Update product stock
+                    product.Stock -= entryDTO.Quantity;
+                    totalAmount += entryDTO.Quantity * product.Price;
 
-                    // Update product stock explicitly
                     _context.Entry(product).State = EntityState.Modified;
 
-                    // Create OrderEntry instance
                     var orderEntry = new OrderEntry
                     {
-                        ProductId = entry.ProductId,
-                        Quantity = entry.Quantity,
+                        ProductId = entryDTO.ProductId,
+                        Quantity = entryDTO.Quantity,
                         Product = product,
-                        Order = order // Ensure relationship is properly linked
+                        Order = order
                     };
 
                     validOrderEntries.Add(orderEntry);
                 }
 
-                // Set order properties before saving
                 order.OrderEntries = validOrderEntries;
                 order.TotalAmount = totalAmount;
                 order.OrderDate = DateTime.UtcNow;
@@ -135,15 +160,16 @@ namespace Server.Controllers
                     order.Status = "Pending";
                 }
 
-                // Add the order to the context and explicitly track all entries
+                Console.WriteLine("Saving order to the database...");
                 _context.Orders.Add(order);
-                _context.OrderEntries.AddRange(validOrderEntries); // Add order entries explicitly
-                await _context.SaveChangesAsync(); // Save changes to both Order and OrderEntries
+                _context.OrderEntries.AddRange(validOrderEntries);
+                await _context.SaveChangesAsync();
 
                 await transaction.CommitAsync();
 
-                Console.WriteLine($"Successfully saved order with Total Amount: {totalAmount}");
-                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+                Console.WriteLine("Order placed successfully.");
+                var resultDTO = _mapper.Map<OrderDTO>(order);
+                return CreatedAtAction(nameof(GetOrder), new { id = resultDTO.Id }, resultDTO);
             }
             catch (Exception ex)
             {
@@ -153,26 +179,30 @@ namespace Server.Controllers
             }
         }
 
+        
         // PUT: api/Order/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> EditOrder(int id, Order order)
+        public async Task<IActionResult> UpdateOrder(int id, [FromBody] OrderDTO orderDTO)
         {
-            if (id != order.Id)
-                return BadRequest();
+            if (id != orderDTO.Id)
+            {
+                return BadRequest("Order ID mismatch.");
+            }
 
             try
             {
-                // Validate if order exists
-                var existingOrder = await _context.Orders.FindAsync(id);
+                var existingOrder = await _context.Orders
+                    .Include(o => o.OrderEntries)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
                 if (existingOrder == null)
                 {
                     return NotFound();
                 }
 
-                // Update fields that are allowed to be modified
-                existingOrder.Status = order.Status;
+                Console.WriteLine("Updating order status...");
+                existingOrder.Status = orderDTO.Status;
 
-                // Apply changes and save
                 _context.Entry(existingOrder).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
 
@@ -180,7 +210,7 @@ namespace Server.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error in EditOrder: {ex.Message} - {ex.StackTrace}");
+                Console.WriteLine($"Error in UpdateOrder: {ex.Message} - {ex.StackTrace}");
                 return StatusCode(500, "Internal Server Error");
             }
         }
@@ -189,22 +219,20 @@ namespace Server.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteOrder(int id)
         {
-            var order = await _context.Orders
-                .Include(o => o.OrderEntries)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
-            if (order == null)
-                return NotFound();
-
             try
             {
-                // Remove all related OrderEntries first
+                var order = await _context.Orders
+                    .Include(o => o.OrderEntries)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
+                if (order == null)
+                {
+                    return NotFound();
+                }
+
+                Console.WriteLine("Deleting order and associated entries...");
                 _context.OrderEntries.RemoveRange(order.OrderEntries);
-
-                // Remove the order itself
                 _context.Orders.Remove(order);
-
-                // Save changes to the database
                 await _context.SaveChangesAsync();
 
                 return NoContent();
@@ -215,5 +243,4 @@ namespace Server.Controllers
                 return StatusCode(500, "Internal Server Error");
             }
         }
-    }
 }

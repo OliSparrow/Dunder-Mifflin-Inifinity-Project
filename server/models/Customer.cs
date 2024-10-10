@@ -14,16 +14,21 @@ namespace Server.Models
 
         [Required]
         [Column("name")]
-        public required string Name { get; set; }
+        public string Name { get; set; } = string.Empty; 
 
+        [Required]
         [Column("address")]
-        public required string Address { get; set; }
+        public string Address { get; set; } = string.Empty;
 
+        [Required]
+        [Phone]
         [Column("phone")]
-        public required string Phone { get; set; }
+        public string Phone { get; set; } = string.Empty;
 
+        [Required]
+        [EmailAddress]
         [Column("email")]
-        public required string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [JsonIgnore]
         public List<Order> Orders { get; set; } = new();

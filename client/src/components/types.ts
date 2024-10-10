@@ -41,11 +41,16 @@ export type Order = {
     deliveryDate?: string;
     status: string;
     totalAmount: number;
-    customer: {
-        id: number;
-        name: string;
-        address: string;
-        phone: string;
-        email: string;
-    };
+    customerName: string;
+    customerAddress: string;
+    customerPhone: string;
+    customerEmail: string;
+    orderEntries: OrderEntry[]; 
 }
+
+export type OrderEntry = {
+    productId: number;
+    quantity: number;
+    productName?: string;
+    price?: number;       
+};

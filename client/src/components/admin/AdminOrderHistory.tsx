@@ -22,13 +22,14 @@ const AdminOrderHistory: React.FC = () => {
             try {
                 const response = await axios.get<Order[]>('http://localhost:5000/api/order');
 
-                // Validate if response is an array
+                console.log("Fetched Orders: ", response.data); 
+
                 if (Array.isArray(response.data)) {
-                    setOrders(response.data); // Set orders from API
+                    setOrders(response.data);
                 } else {
                     throw new Error('Response is not an array');
                 }
-                setLoading(false); // Stop loading when data is received
+                setLoading(false);
             } catch (error) {
                 console.error("Error fetching orders:", error);
                 setError("Failed to load orders");
@@ -36,7 +37,7 @@ const AdminOrderHistory: React.FC = () => {
             }
         };
 
-        fetchOrders(); // Fetch orders on component mount
+        fetchOrders();
     }, []);
 
     // --- HANDLERS ---
@@ -175,7 +176,7 @@ const AdminOrderHistory: React.FC = () => {
                             <tr>
                                 <th>{deleteMode ? 'Select' : 'Delete'}</th>
                                 <th>Order Date</th>
-                                <th>Customer Name</th>
+                                <th>Customer</th>
                                 <th>Status</th>
                                 <th>Delivery Date</th>
                                 <th>Total Amount</th>
@@ -218,7 +219,7 @@ const AdminOrderHistory: React.FC = () => {
                                         {new Date(order.orderDate).toISOString().split('T')[0]}
                                     </td>
                                     <td className="whitespace-normal break-words text-sm md:text-base p-2 md:p-4">
-                                        {order.customer?.name}
+                                        {order.customerName || "Unknown"} 
                                     </td>
                                     <td className="text-sm md:text-base p-2 md:p-4">
                                         {order.status}
@@ -253,7 +254,7 @@ const AdminOrderHistory: React.FC = () => {
                 <div className="modal modal-open">
                     <div className="modal-box">
                         <h3 className="font-bold text-lg">Delete Order</h3>
-                        <p>Are you sure you want to delete the order for "{orderToDelete.customer?.name}"?</p>
+                        <p>Are you sure you want to delete the order for "{orderToDelete?.customerName || "Unknown"}"?</p>
                         <div className="modal-action">
                             <button className="btn btn-error" onClick={handleConfirmDelete}>
                                 Delete

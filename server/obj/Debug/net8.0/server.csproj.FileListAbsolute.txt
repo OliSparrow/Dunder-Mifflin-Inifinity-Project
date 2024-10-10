@@ -98,3 +98,5 @@ C:\Users\Jay_J\RiderProjects\dunder-mifflin-infinity\server\obj\Debug\net8.0\ser
 C:\Users\Jay_J\RiderProjects\dunder-mifflin-infinity\server\obj\Debug\net8.0\server.genruntimeconfig.cache
 C:\Users\Jay_J\RiderProjects\dunder-mifflin-infinity\server\obj\Debug\net8.0\ref\server.dll
 C:\Users\Jay_J\RiderProjects\dunder-mifflin-infinity\server\bin\Debug\net8.0\Newtonsoft.Json.dll
+C:\Users\Jay_J\RiderProjects\dunder-mifflin-infinity\server\bin\Debug\net8.0\AutoMapper.dll
+C:\Users\Jay_J\RiderProjects\dunder-mifflin-infinity\server\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

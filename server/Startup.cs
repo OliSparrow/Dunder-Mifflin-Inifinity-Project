@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Server.Data;
+using AutoMapper;
 
 namespace Server
 {
@@ -23,6 +24,9 @@ namespace Server
             // Add DbContext and configure PostgreSQL connection
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Register AutoMapper for Dependency Injection
+            services.AddAutoMapper(typeof(Startup)); // This will look for profiles in the current assembly
 
             // Add CORS policy to allow requests from React app
             services.AddCors(options =>
