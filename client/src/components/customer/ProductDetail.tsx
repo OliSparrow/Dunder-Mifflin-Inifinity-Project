@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAtom } from "jotai";
 import { productsAtom } from "../../atoms/productAtoms.ts";
 import { FiShoppingCart, FiArrowLeft } from "react-icons/fi";
-import {cartAtom} from "../../atoms/cartAtom.ts";
+import { cartAtom } from "../../atoms/cartAtom.ts";
 
 const ProductDetail: React.FC = () => {
     //---- ATOMS -----
@@ -13,10 +13,11 @@ const ProductDetail: React.FC = () => {
     //---- FIND PRODUCT BY ID -----
     const { id } = useParams<{ id: string }>();
     const [quantity, setQuantity] = useState<number>(1);
+    const [showDiscontinuedModal, setShowDiscontinuedModal] = useState<boolean>(false);
     const product = products.find((p) => p.id === Number(id));
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
 
-    if (!product) {  
+    if (!product) {
         return (
             <div className="p-4 bg-base-100 min-h-screen">
                 <h1 className="text-3xl font-bold mb-4">Product not found</h1>
@@ -27,12 +28,16 @@ const ProductDetail: React.FC = () => {
 
     //------ HANDLERS ------
     const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newQuantity = Math.max(1, Number(e.target.value)); 
+        const newQuantity = Math.max(1, Number(e.target.value));
         setQuantity(newQuantity);
     };
 
     const handleAddToCart = () => {
-        console.log(`Adding ${quantity} of product: `, product);
+        if (product.discontinued) {
+            // Show modal if product is discontinued and user somehow manages to add to cart
+            setShowDiscontinuedModal(true);
+            return;
+        }
 
         setCart((prevCart) => {
             const existingItem = prevCart.find(item => item.product.id === product.id);
@@ -53,6 +58,10 @@ const ProductDetail: React.FC = () => {
         navigate('/'); //Navigate back to the product list page
     };
 
+    const handleCloseModal = () => {
+        setShowDiscontinuedModal(false);
+    };
+
     //------ RENDER PROPERTIES ------
     const renderProperties = () => {
         if (product.paperProperties.length === 0) {
@@ -71,7 +80,8 @@ const ProductDetail: React.FC = () => {
     //---- STYLING -----
     return (
         <div className="p-4 bg-base-100 min-h-screen">
-            <div className="card shadow-lg bg-white text-base-content p-6">
+            <div className="card shadow-lg bg-white text-base-content p-6 relative">
+
                 {/* Product details */}
                 <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
                 <p className="text-lg mb-2">Price: ${product.price}</p>
@@ -83,6 +93,11 @@ const ProductDetail: React.FC = () => {
                     {renderProperties()}
                 </div>
 
+                {/* Discontinued Label */}
+                {product.discontinued && (
+                    <span className="badge badge-error absolute bottom-4 left-4">Discontinued</span>
+                )}
+
                 {/* Button to add + quantity input */}
                 <div className="flex justify-end items-center gap-4">
                     <input
@@ -93,20 +108,39 @@ const ProductDetail: React.FC = () => {
                         min="1"
                         className="input input-bordered bg-white w-16"
                     />
-                    <button className="btn btn-primary" onClick={handleAddToCart}>
-                        <FiShoppingCart className="mr-2"/>
+                    <button
+                        className="btn btn-primary"
+                        onClick={handleAddToCart}
+                        disabled={product.discontinued}
+                    >
+                        <FiShoppingCart className="mr-2" />
                         Add to Cart
                     </button>
                 </div>
             </div>
-            
+
             {/* Back to Product List Button */}
             <div className="mt-6">
                 <button className="btn btn-outline" onClick={handleBackToList}>
-                    <FiArrowLeft/>
+                    <FiArrowLeft />
                     Back
                 </button>
             </div>
+
+            {/* Discontinued Product Modal */}
+            {showDiscontinuedModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Product Discontinued</h3>
+                        <p>The product "{product.name}" is discontinued and cannot be added to the cart.</p>
+                        <div className="modal-action">
+                            <button className="btn" onClick={handleCloseModal}>
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
