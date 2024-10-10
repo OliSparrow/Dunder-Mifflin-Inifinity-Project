@@ -1,22 +1,48 @@
-import React from "react";
-import { useAtom } from "jotai";
-import { cartAtom } from "../../atoms/cartAtom";
-import {useNavigate} from "react-router-dom";
-
+import React, { useState, useEffect } from 'react';
+import { useAtom } from 'jotai';
+import { cartAtom } from '../../atoms/cartAtom';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { Order } from '../types.ts';
+import OrderTable from './OrderTable';
 
 const Cart: React.FC = () => {
     // --- ATOMS ---
     const [cart, setCart] = useAtom(cartAtom);
 
+    // --- STATE FOR ORDERS ---
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
     // --- OTHER ---
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const response = await axios.get<Order[]>('http://localhost:5000/api/order');
+                if (Array.isArray(response.data)) {
+                    setOrders(response.data);
+                } else {
+                    throw new Error('Response is not an array');
+                }
+                setLoading(false);
+            } catch (error) {
+                console.error("Error fetching orders:", error);
+                setError("Failed to load orders");
+                setLoading(false);
+            }
+        };
+
+        fetchOrders();
+    }, []);
+
     const removeFromCart = (id: number) => {
         setCart(cart.filter(item => item.product.id !== id));
     };
 
     const updateQuantity = (id, quantity) => {
-        console.log(`Updating product ID ${id} to quantity ${quantity}`);
-
         setCart(
             cart.map(item =>
                 item.product.id === id ? { ...item, quantity: Math.max(quantity, 1) } : item
@@ -24,7 +50,6 @@ const Cart: React.FC = () => {
         );
     };
 
-    // ---- HANDLERS ----
     const handleCheckout = () => {
         if (cart.length === 0) {
             alert('Your cart is empty. Add some products before proceeding to checkout.');
@@ -32,7 +57,6 @@ const Cart: React.FC = () => {
         }
         navigate('/checkout');
     };
-
 
     // --- STYLING ---
     return (
@@ -72,6 +96,20 @@ const Cart: React.FC = () => {
                 <button onClick={handleCheckout} className="btn btn-primary">
                     Checkout
                 </button>
+            </div>
+            
+            <div className="divider" />
+
+            {/* Orders Section */}
+            <div className="mt-8">
+                <h2 className="text-xl font-bold mb-4">Order History</h2>
+                {loading ? (
+                    <p>Loading orders...</p>
+                ) : error ? (
+                    <p>{error}</p>
+                ) : (
+                    <OrderTable orders={orders} />
+                )}
             </div>
         </div>
     );
