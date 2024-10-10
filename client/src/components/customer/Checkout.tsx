@@ -30,14 +30,16 @@ const Checkout: React.FC = () => {
             customerAddress: customer.address,
             customerPhone: customer.phone,
             customerEmail: customer.email,
-            customerId: null, 
+            customerId: null,
             orderEntries: cart.map(item => ({
                 productId: item.product.id,
                 quantity: item.quantity
             })),
             status: "Pending",
             orderDate: new Date().toISOString(),
-            totalAmount: cart.reduce((total, item) => total + item.product.price * item.quantity, 0),
+            totalAmount: parseFloat(
+                cart.reduce((total, item) => total + item.product.price * item.quantity, 0).toFixed(2)
+            ),
         };
 
         console.log("Order being sent: ", order);
@@ -152,7 +154,7 @@ const Checkout: React.FC = () => {
                             {cart.reduce(
                                 (total, item) => total + item.product.price * item.quantity,
                                 0
-                            )}$
+                            ).toFixed(2)}$
                         </p>
                     </div>
                 </div>
