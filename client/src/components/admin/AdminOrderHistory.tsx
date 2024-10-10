@@ -11,7 +11,10 @@ const AdminOrderHistory: React.FC = () => {
     const [deleteMode, setDeleteMode] = useState(false);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    const [deleting, setDeleting] = useState<boolean>(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showDeleteMultipleModal, setShowDeleteMultipleModal] = useState(false);
+    const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // --- USE EFFECT TO FETCH ORDERS ---
     useEffect(() => {
@@ -39,58 +42,49 @@ const AdminOrderHistory: React.FC = () => {
     // --- HANDLERS ---
     const handleEditOrderClick = (order: Order) => {
         setEditingOrder(order);
+        setShowEditModal(true);
     };
 
-    const handleDeleteOrder = async (id: number) => {
-        const confirmed = window.confirm('Are you sure you want to delete this order?');
-        if (confirmed) {
-            setDeleting(true); // Indicate deletion is in progress
-            try {
-                await axios.delete(`http://localhost:5000/api/order/${id}`);
-                setOrders(orders.filter((order) => order.id !== id)); // Update state after deletion
-                alert('Order deleted successfully'); // Success feedback
-            } catch (error) {
-                console.error("Error deleting order:", error);
-                alert("Failed to delete the order");
-            } finally {
-                setDeleting(false); // Reset deleting state
-            }
+    const handleDeleteOrder = (order: Order) => {
+        setOrderToDelete(order);
+        setShowDeleteModal(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!orderToDelete) return;
+
+        try {
+            await axios.delete(`http://localhost:5000/api/order/${orderToDelete.id}`);
+            setOrders(orders.filter((order) => order.id !== orderToDelete.id));
+        } catch (error) {
+            console.error("Error deleting order:", error);
+            alert("Failed to delete the order");
+        } finally {
+            setShowDeleteModal(false);
+            setOrderToDelete(null);
         }
     };
 
-    const handleSelectOrder = (id: number) => {
-        setSelectedOrders((prevSelected) =>
-            prevSelected.includes(id)
-                ? prevSelected.filter((orderId) => orderId !== id)
-                : [...prevSelected, id]
-        );
-    };
-
     const handleDeleteSelectedOrders = async () => {
-        const confirmed = window.confirm('Are you sure you want to delete the selected orders?');
-        if (confirmed) {
-            setDeleting(true); // Indicate deletion is in progress
-            try {
-                await Promise.all(
-                    selectedOrders.map((id) => axios.delete(`http://localhost:5000/api/order/${id}`))
-                );
-                setOrders(orders.filter((order) => !selectedOrders.includes(order.id)));
-                setSelectedOrders([]);
-                setDeleteMode(false);
-                alert('Selected orders deleted successfully');
-            } catch (error) {
-                console.error("Error deleting orders:", error);
-                alert("Failed to delete selected orders");
-            } finally {
-                setDeleting(false); // Reset deleting state
-            }
+        try {
+            await Promise.all(
+                selectedOrders.map((id) => axios.delete(`http://localhost:5000/api/order/${id}`))
+            );
+            setOrders(orders.filter((order) => !selectedOrders.includes(order.id)));
+            setSelectedOrders([]);
+            setDeleteMode(false);
+        } catch (error) {
+            console.error("Error deleting orders:", error);
+            alert("Failed to delete selected orders");
+        } finally {
+            setShowDeleteMultipleModal(false);
         }
     };
 
     const handleDeleteButtonClick = () => {
         if (deleteMode) {
             if (selectedOrders.length > 0) {
-                handleDeleteSelectedOrders();
+                setShowDeleteMultipleModal(true);
             } else {
                 setDeleteMode(false);
                 setSelectedOrders([]);
@@ -104,26 +98,37 @@ const AdminOrderHistory: React.FC = () => {
         setSelectedOrders([]);
     };
 
-    const handleUpdateOrder = async (updatedOrder: Partial<Order> & { id: number }) => {
+    const handleSelectOrder = (id: number) => {
+        setSelectedOrders((prevSelected) =>
+            prevSelected.includes(id)
+                ? prevSelected.filter((orderId) => orderId !== id)
+                : [...prevSelected, id]
+        );
+    };
+
+    const handleUpdateOrder = async () => {
+        if (!editingOrder) return;
+
         try {
-            await axios.put(`http://localhost:5000/api/order/${updatedOrder.id}`, updatedOrder);
+            await axios.put(`http://localhost:5000/api/order/${editingOrder.id}`, { status: editingOrder.status });
             setOrders((prevOrders) =>
                 prevOrders.map((order) =>
-                    order.id === updatedOrder.id ? { ...order, ...updatedOrder } : order
+                    order.id === editingOrder.id ? { ...order, status: editingOrder.status } : order
                 )
             );
-            setEditingOrder(null); // Close the modal after updating
         } catch (error) {
-            console.error("Error updating order:", error);
-            alert("Failed to update order");
+            console.error("Error updating order status:", error);
+            alert("Failed to update order status");
+        } finally {
+            setShowEditModal(false);
+            setEditingOrder(null);
         }
     };
 
-    // Helper to calculate delivery date
     const calculateDeliveryDate = (orderDate: string): string => {
         const orderDateObj = new Date(orderDate);
         orderDateObj.setDate(orderDateObj.getDate() + 10);
-        return orderDateObj.toISOString().split('T')[0]; 
+        return orderDateObj.toISOString().split('T')[0];
     };
 
     // --- STYLING & RENDERING ---
@@ -135,7 +140,6 @@ const AdminOrderHistory: React.FC = () => {
                     <button
                         className={`btn ${deleteMode ? 'btn-error' : 'btn-error'}`}
                         onClick={handleDeleteButtonClick}
-                        disabled={!deleteMode || selectedOrders.length === 0 || deleting} // Disable if no orders selected or during deletion
                     >
                         {deleteMode
                             ? selectedOrders.length > 0
@@ -147,7 +151,7 @@ const AdminOrderHistory: React.FC = () => {
                     {deleteMode && (
                         <button
                             className="btn btn-outline"
-                            disabled={selectedOrders.length === 0 || deleting} // Disable if no selections or during deletion
+                            disabled={selectedOrders.length === 0}
                             onClick={handleClearSelections}
                         >
                             {selectedOrders.length > 0
@@ -205,7 +209,7 @@ const AdminOrderHistory: React.FC = () => {
                                                 className="cursor-pointer text-red-600"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleDeleteOrder(order.id);
+                                                    handleDeleteOrder(order);
                                                 }}
                                             />
                                         )}
@@ -244,59 +248,70 @@ const AdminOrderHistory: React.FC = () => {
                 )}
             </div>
 
-            {/* Placeholder for Editing Modal */}
-            {editingOrder && (
+            {/* Delete Confirmation Modal for Single Order */}
+            {showDeleteModal && orderToDelete && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Delete Order</h3>
+                        <p>Are you sure you want to delete the order for "{orderToDelete.customer?.name}"?</p>
+                        <div className="modal-action">
+                            <button className="btn btn-error" onClick={handleConfirmDelete}>
+                                Delete
+                            </button>
+                            <button className="btn" onClick={() => setShowDeleteModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal for Multiple Orders */}
+            {showDeleteMultipleModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Delete Selected Orders</h3>
+                        <p>Are you sure you want to delete the selected orders?</p>
+                        <div className="modal-action">
+                            <button className="btn btn-error" onClick={handleDeleteSelectedOrders}>
+                                Delete
+                            </button>
+                            <button className="btn" onClick={() => setShowDeleteMultipleModal(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Order Modal */}
+            {showEditModal && editingOrder && (
                 <div className="modal modal-open">
                     <div className="modal-box">
                         <h3 className="font-bold text-lg">Edit Order</h3>
                         <form>
-                            <div className="form-control">
+                            <div className="form-control mb-4">
                                 <label className="label">
-                                    <span className="label-text">Customer Name</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={editingOrder.customer?.name}
-                                    className="input input-bordered"
-                                    readOnly
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Total Amount</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    value={editingOrder.totalAmount}
-                                    className="input input-bordered"
-                                    readOnly
-                                />
-                            </div>
-                            <div className="form-control">
-                                <label className="label">
-                                    <span className="label-text">Status</span>
+                                    <span className="label-text">Order Status</span>
                                 </label>
                                 <select
-                                    className="select select-bordered"
                                     value={editingOrder.status}
                                     onChange={(e) =>
-                                        handleUpdateOrder({
-                                            id: editingOrder.id,
-                                            status: e.target.value
-                                        })
+                                        setEditingOrder({ ...editingOrder, status: e.target.value })
                                     }
+                                    className="select select-bordered"
                                 >
                                     <option value="Pending">Pending</option>
-                                    <option value="Shipped">Shipped</option>
                                     <option value="Delivered">Delivered</option>
+                                    <option value="Not Delivered">Not Delivered</option>
                                 </select>
                             </div>
                         </form>
                         <div className="modal-action">
-                            <button
-                                className="btn btn-outline"
-                                onClick={() => setEditingOrder(null)}
-                            >
+                            <button className="btn btn-primary" onClick={handleUpdateOrder}>
+                                Save Changes
+                            </button>
+                            <button className="btn" onClick={() => setShowEditModal(false)}>
                                 Cancel
                             </button>
                         </div>
