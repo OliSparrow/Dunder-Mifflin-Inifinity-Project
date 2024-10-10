@@ -10,10 +10,10 @@ namespace Server
         {
             // Mapping from Order to OrderDTO
             CreateMap<Order, OrderDTO>()
-                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Name))
-                .ForMember(dest => dest.CustomerAddress, opt => opt.MapFrom(src => src.Customer.Address))
-                .ForMember(dest => dest.CustomerPhone, opt => opt.MapFrom(src => src.Customer.Phone))
-                .ForMember(dest => dest.CustomerEmail, opt => opt.MapFrom(src => src.Customer.Email))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Name : string.Empty))
+                .ForMember(dest => dest.CustomerAddress, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Address : string.Empty))
+                .ForMember(dest => dest.CustomerPhone, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Phone : string.Empty))
+                .ForMember(dest => dest.CustomerEmail, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Email : string.Empty))
                 .ForMember(dest => dest.OrderEntries, opt => opt.MapFrom(src => src.OrderEntries));
 
             // Mapping from OrderDTO to Order
@@ -23,8 +23,8 @@ namespace Server
 
             // Mapping from OrderEntry to OrderEntryDTO
             CreateMap<OrderEntry, OrderEntryDTO>()
-                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product.Name))
-                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product.Price));
+                .ForMember(dest => dest.ProductName, opt => opt.MapFrom(src => src.Product != null ? src.Product.Name : string.Empty))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Product != null ? src.Product.Price : 0));
 
             // Mapping from OrderEntryDTO to OrderEntry
             CreateMap<OrderEntryDTO, OrderEntry>();

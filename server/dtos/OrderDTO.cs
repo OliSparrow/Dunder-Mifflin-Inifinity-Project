@@ -10,14 +10,11 @@ namespace Server.dtos
         public DateTime? DeliveryDate { get; set; }
         public string Status { get; set; } = "Pending";
         public double TotalAmount { get; set; }
-
-        // Customer Information for new customer creation
+        public int? CustomerId { get; set; }
         public string CustomerName { get; set; } = string.Empty;
         public string CustomerAddress { get; set; } = string.Empty;
-        public string CustomerPhone { get; set; } = string.Empty;
+        public string CustomerPhone { get; set; } = string.Empty;  
         public string CustomerEmail { get; set; } = string.Empty;
-
-        // Order entries
         public List<OrderEntryDTO> OrderEntries { get; set; } = new();
     }
 }
