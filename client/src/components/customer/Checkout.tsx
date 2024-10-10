@@ -4,7 +4,7 @@ import { cartAtom } from '../../atoms/cartAtom';
 import { useNavigate } from 'react-router-dom';
 
 const Checkout: React.FC = () => {
-    //--- ATOMS ----
+    // --- ATOMS ----
     const [cart, setCart] = useAtom(cartAtom);
     const navigate = useNavigate();
 
@@ -16,13 +16,23 @@ const Checkout: React.FC = () => {
         email: ''
     });
 
+    // --- STATE FOR MODALS ---
+    const [showOrderSuccessModal, setShowOrderSuccessModal] = useState<boolean>(false);
+    const [missingField, setMissingField] = useState<string | null>(null);
+
     // --- HANDLERS ---
     const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCustomer({ ...customer, [e.target.name]: e.target.value });
     };
 
     const handlePlaceOrder = async () => {
-        console.log("Cart before placing the order: ", cart);
+        // Validate customer fields
+        for (let key in customer) {
+            if (customer[key as keyof typeof customer].trim() === '') {
+                setMissingField(key);
+                return;
+            }
+        }
 
         // Prepare order object using OrderDTO structure
         const order = {
@@ -58,9 +68,8 @@ const Checkout: React.FC = () => {
                 console.error('Order error:', error);
                 alert(`Error placing order: ${error.title || error}`);
             } else {
-                alert('Order placed successfully!');
+                setShowOrderSuccessModal(true); // Show success modal
                 setCart([]);
-                navigate('/');
             }
 
         } catch (error) {
@@ -69,6 +78,14 @@ const Checkout: React.FC = () => {
         }
     };
 
+    const handleCloseMissingFieldModal = () => {
+        setMissingField(null);
+    };
+
+    const handleCloseOrderSuccessModal = () => {
+        setShowOrderSuccessModal(false);
+        navigate('/'); // Navigate back to home after closing success modal
+    };
 
     // ---- STYLING ----
     return (
@@ -159,6 +176,36 @@ const Checkout: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Missing Field Modal */}
+            {missingField && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Missing Information</h3>
+                        <p>Please fill out the "{missingField}" field to proceed with your order.</p>
+                        <div className="modal-action">
+                            <button className="btn" onClick={handleCloseMissingFieldModal}>
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Order Success Modal */}
+            {showOrderSuccessModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Order Received</h3>
+                        <p>Your order has been placed successfully!</p>
+                        <div className="modal-action">
+                            <button className="btn btn-primary" onClick={handleCloseOrderSuccessModal}>
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

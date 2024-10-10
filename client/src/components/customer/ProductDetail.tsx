@@ -14,6 +14,7 @@ const ProductDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [quantity, setQuantity] = useState<number>(1);
     const [showDiscontinuedModal, setShowDiscontinuedModal] = useState<boolean>(false);
+    const [showAddedToCartModal, setShowAddedToCartModal] = useState<boolean>(false);
     const product = products.find((p) => p.id === Number(id));
     const navigate = useNavigate();
 
@@ -40,9 +41,9 @@ const ProductDetail: React.FC = () => {
         }
 
         setCart((prevCart) => {
-            const existingItem = prevCart.find(item => item.product.id === product.id);
+            const existingItem = prevCart.find((item) => item.product.id === product.id);
             if (existingItem) {
-                return prevCart.map(item =>
+                return prevCart.map((item) =>
                     item.product.id === product.id
                         ? { ...item, quantity: item.quantity + quantity }
                         : item
@@ -51,15 +52,26 @@ const ProductDetail: React.FC = () => {
                 return [...prevCart, { product, quantity }];
             }
         });
-        alert(`Added ${quantity} of ${product.name} to the cart`);
+
+        // Show "Added to Cart" modal
+        setShowAddedToCartModal(true);
     };
 
     const handleBackToList = () => {
-        navigate('/'); //Navigate back to the product list page
+        navigate('/'); // Navigate back to the product list page
     };
 
-    const handleCloseModal = () => {
+    const handleCloseDiscontinuedModal = () => {
         setShowDiscontinuedModal(false);
+    };
+
+    const handleContinueShopping = () => {
+        setShowAddedToCartModal(false);
+    };
+
+    const handleGoToCart = () => {
+        setShowAddedToCartModal(false);
+        navigate('/cart'); // Navigate to cart page
     };
 
     //------ RENDER PROPERTIES ------
@@ -134,8 +146,26 @@ const ProductDetail: React.FC = () => {
                         <h3 className="font-bold text-lg">Product Discontinued</h3>
                         <p>The product "{product.name}" is discontinued and cannot be added to the cart.</p>
                         <div className="modal-action">
-                            <button className="btn" onClick={handleCloseModal}>
+                            <button className="btn" onClick={handleCloseDiscontinuedModal}>
                                 OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Added to Cart Modal */}
+            {showAddedToCartModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Product Added to Cart</h3>
+                        <p>{quantity} of "{product.name}" has been added to your cart.</p>
+                        <div className="modal-action flex gap-4">
+                            <button className="btn btn-outline" onClick={handleContinueShopping}>
+                                Continue Shopping
+                            </button>
+                            <button className="btn btn-primary" onClick={handleGoToCart}>
+                                Go to Cart
                             </button>
                         </div>
                     </div>

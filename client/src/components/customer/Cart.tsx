@@ -15,6 +15,9 @@ const Cart: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    // --- STATE FOR EMPTY CART MODAL ---
+    const [showEmptyCartModal, setShowEmptyCartModal] = useState<boolean>(false);
+
     // --- OTHER ---
     const navigate = useNavigate();
 
@@ -42,7 +45,7 @@ const Cart: React.FC = () => {
         setCart(cart.filter(item => item.product.id !== id));
     };
 
-    const updateQuantity = (id, quantity) => {
+    const updateQuantity = (id: number, quantity: number) => {
         setCart(
             cart.map(item =>
                 item.product.id === id ? { ...item, quantity: Math.max(quantity, 1) } : item
@@ -52,10 +55,14 @@ const Cart: React.FC = () => {
 
     const handleCheckout = () => {
         if (cart.length === 0) {
-            alert('Your cart is empty. Add some products before proceeding to checkout.');
+            setShowEmptyCartModal(true);
             return;
         }
         navigate('/checkout');
+    };
+
+    const handleCloseEmptyCartModal = () => {
+        setShowEmptyCartModal(false);
     };
 
     // --- STYLING ---
@@ -97,7 +104,7 @@ const Cart: React.FC = () => {
                     Checkout
                 </button>
             </div>
-            
+
             <div className="divider" />
 
             {/* Orders Section */}
@@ -111,6 +118,21 @@ const Cart: React.FC = () => {
                     <OrderTable orders={orders} />
                 )}
             </div>
+
+            {/* Empty Cart Modal */}
+            {showEmptyCartModal && (
+                <div className="modal modal-open">
+                    <div className="modal-box">
+                        <h3 className="font-bold text-lg">Cart is Empty</h3>
+                        <p>Add some products before proceeding to checkout.</p>
+                        <div className="modal-action">
+                            <button className="btn" onClick={handleCloseEmptyCartModal}>
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
