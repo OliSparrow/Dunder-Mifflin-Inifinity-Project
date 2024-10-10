@@ -32,6 +32,8 @@ const ProductDetail: React.FC = () => {
     };
 
     const handleAddToCart = () => {
+        console.log(`Adding ${quantity} of product: `, product);
+
         setCart((prevCart) => {
             const existingItem = prevCart.find(item => item.product.id === product.id);
             if (existingItem) {

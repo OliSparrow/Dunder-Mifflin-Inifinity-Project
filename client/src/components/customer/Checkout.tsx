@@ -22,16 +22,20 @@ const Checkout: React.FC = () => {
     };
 
     const handlePlaceOrder = async () => {
+        console.log("Cart before placing the order: ", cart);
+
         const order = {
-            customer: customer, // Customer details
+            customer: customer,
             orderEntries: cart.map(item => ({
-                productId: item.product.id, // Correct product ID
-                quantity: item.quantity,    // Quantity of each product
+                productId: item.product.id,
+                quantity: item.quantity,
             })),
-            status: "Pending",  // Add the required status field
-            orderDate: new Date().toISOString(), // Send current date
-            totalAmount: cart.reduce((total, item) => total + item.product.price * item.quantity, 0), // Calculate total price
+            status: "Pending",
+            orderDate: new Date().toISOString(),
+            totalAmount: cart.reduce((total, item) => total + item.product.price * item.quantity, 0),
         };
+
+        console.log("Order being sent: ", order);
 
         try {
             const response = await fetch('http://localhost:5000/api/order', {
@@ -41,14 +45,15 @@ const Checkout: React.FC = () => {
                 },
                 body: JSON.stringify(order)
             });
+
             if (!response.ok) {
                 const error = await response.json();
                 console.error('Order error:', error);
                 alert(`Error placing order: ${error.title}`);
             } else {
                 alert('Order placed successfully!');
-                setCart([]); // Clear cart after successful order
-                navigate('/'); // Navigate to the home page
+                setCart([]);
+                navigate('/');
             }
 
         } catch (error) {

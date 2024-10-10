@@ -110,16 +110,22 @@ namespace Server.Controllers
                     product.Stock -= entry.Quantity;
                     totalAmount += entry.Quantity * product.Price;
 
-                    validOrderEntries.Add(new OrderEntry
+                    // Update product stock explicitly
+                    _context.Entry(product).State = EntityState.Modified;
+
+                    // Create OrderEntry instance
+                    var orderEntry = new OrderEntry
                     {
                         ProductId = entry.ProductId,
                         Quantity = entry.Quantity,
                         Product = product,
-                        OrderId = order.Id 
-                    });
+                        Order = order // Ensure relationship is properly linked
+                    };
+
+                    validOrderEntries.Add(orderEntry);
                 }
 
-                // Set order properties
+                // Set order properties before saving
                 order.OrderEntries = validOrderEntries;
                 order.TotalAmount = totalAmount;
                 order.OrderDate = DateTime.UtcNow;
@@ -129,21 +135,14 @@ namespace Server.Controllers
                     order.Status = "Pending";
                 }
 
-                // Add the order to the context
+                // Add the order to the context and explicitly track all entries
                 _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
-
-                // Update the OrderId for each OrderEntry after the order is saved and has an ID
-                foreach (var orderEntry in validOrderEntries)
-                {
-                    orderEntry.OrderId = order.Id; 
-                }
-
-                _context.OrderEntries.AddRange(validOrderEntries); 
-                await _context.SaveChangesAsync();
+                _context.OrderEntries.AddRange(validOrderEntries); // Add order entries explicitly
+                await _context.SaveChangesAsync(); // Save changes to both Order and OrderEntries
 
                 await transaction.CommitAsync();
 
+                Console.WriteLine($"Successfully saved order with Total Amount: {totalAmount}");
                 return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
             }
             catch (Exception ex)

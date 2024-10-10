@@ -14,7 +14,9 @@ const Cart: React.FC = () => {
         setCart(cart.filter(item => item.product.id !== id));
     };
 
-    const updateQuantity = (id: number, quantity: number) => {
+    const updateQuantity = (id, quantity) => {
+        console.log(`Updating product ID ${id} to quantity ${quantity}`);
+
         setCart(
             cart.map(item =>
                 item.product.id === id ? { ...item, quantity: Math.max(quantity, 1) } : item
