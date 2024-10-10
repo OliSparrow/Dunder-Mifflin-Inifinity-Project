@@ -110,10 +110,10 @@ const AdminOrderHistory: React.FC = () => {
         if (!editingOrder) return;
 
         try {
-            await axios.put(`http://localhost:5000/api/order/${editingOrder.id}`, { status: editingOrder.status });
+            await axios.put(`http://localhost:5000/api/order/${editingOrder.id}`, editingOrder);
             setOrders((prevOrders) =>
                 prevOrders.map((order) =>
-                    order.id === editingOrder.id ? { ...order, status: editingOrder.status } : order
+                    order.id === editingOrder.id ? { ...order, ...editingOrder } : order
                 )
             );
         } catch (error) {

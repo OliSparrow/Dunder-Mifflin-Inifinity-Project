@@ -160,9 +160,29 @@ namespace Server.Controllers
             if (id != order.Id)
                 return BadRequest();
 
-            _context.Entry(order).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-            return NoContent();
+            try
+            {
+                // Validate if order exists
+                var existingOrder = await _context.Orders.FindAsync(id);
+                if (existingOrder == null)
+                {
+                    return NotFound();
+                }
+
+                // Update fields that are allowed to be modified
+                existingOrder.Status = order.Status;
+
+                // Apply changes and save
+                _context.Entry(existingOrder).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in EditOrder: {ex.Message} - {ex.StackTrace}");
+                return StatusCode(500, "Internal Server Error");
+            }
         }
 
         // DELETE: api/Order/{id}
@@ -176,16 +196,24 @@ namespace Server.Controllers
             if (order == null)
                 return NotFound();
 
-            // Remove all related OrderEntries first
-            _context.OrderEntries.RemoveRange(order.OrderEntries);
+            try
+            {
+                // Remove all related OrderEntries first
+                _context.OrderEntries.RemoveRange(order.OrderEntries);
 
-            // Remove the order itself
-            _context.Orders.Remove(order);
+                // Remove the order itself
+                _context.Orders.Remove(order);
 
-            // Save changes to the database
-            await _context.SaveChangesAsync();
+                // Save changes to the database
+                await _context.SaveChangesAsync();
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in DeleteOrder: {ex.Message} - {ex.StackTrace}");
+                return StatusCode(500, "Internal Server Error");
+            }
         }
     }
 }
